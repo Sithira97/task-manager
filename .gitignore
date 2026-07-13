@@ -1,0 +1,8 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+/.vscode
+*/node_modules
+/public/build

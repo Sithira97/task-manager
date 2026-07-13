@@ -1,12 +1,33 @@
 import express, { type Express, type Request, type Response } from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import taskRoutes from "./routes/taskRoutes.js";
+
+dotenv.config();
 
 const app: Express = express();
-const port = 3000;
+const port = process.env.PORT || 3001;
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
+// Configure CORS to allow interactions from frontend server
+app.use(
+  cors({
+    origin: "*", // Only in development
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+// Middleware for parsing JSON bodies
+app.use(express.json());
+
+// Root route
+app.use("/api/tasks", taskRoutes);
+
+// Server status endpoint
+app.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "OK", timestamp: new Date() });
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Task Manager API Server running on http://localhost:${port}`);
 });

@@ -1,16 +1,36 @@
-import Navbar from "../components/Navbar.js";
-import { useIsMobile } from "../hooks/IsMobileHook";
-import MobileNav from "../components/MobileNav.js";
+import { useEffect, useState } from "react";
+import type { Task } from "../types";
+import TaskCard from "../components/TaskCard.js";
 
 const Tasks: React.FC = () => {
-  const isMobile = useIsMobile();
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        const response = await fetch(`http://localhost:3001/api/tasks`);
+        const data = await response.json();
+        if (data && Array.isArray(data.tasks)) {
+          setTasks(data.tasks);
+        } else {
+          setTasks([]);
+        }
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        setTasks([]);
+      }
+    }
+    fetchTasks();
+  }, []);
+
   return (
-    <div className="flex h-screen relative">
-      <div className="sm:ml-64 w-full h-screen flex flex-col">
-        {isMobile ? <MobileNav /> : <Navbar />}
-        <main className="flex-1 overflow-y-auto"></main>
+    <main className="flex-1 flex flex-col gap-3 overflow-y-auto mb-16 p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+        {tasks.map((value) => (
+          <TaskCard key={value.id} task={value} />
+        ))}
       </div>
-    </div>
+    </main>
   );
 };
 

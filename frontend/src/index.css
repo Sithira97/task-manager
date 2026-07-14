@@ -41,6 +41,10 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-priority-low: var(--priority-low);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-high: var(--priority-high);
 }
 
 :root {
@@ -76,6 +80,9 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --priority-low: #10b981;
+  --priority-medium: #f59e0b;
+  --priority-high: #ef4444;
 }
 
 .dark {
@@ -110,6 +117,9 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --priority-low: #10b981; /* Emerald */
+  --priority-medium: #f59e0b; /* Amber */
+  --priority-high: #ef4444; /* Rose */
 }
 
 ::-webkit-scrollbar {

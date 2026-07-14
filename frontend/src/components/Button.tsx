@@ -1,18 +1,17 @@
 import type { ButtonHTMLAttributes } from "react";
 
 interface ButtonProps {
-  variant?: "primary" | "secondary" | "outline" | "ghost";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "link";
   children: React.ReactNode;
   className?: string;
-  restProps?: ButtonHTMLAttributes<HTMLButtonElement>;
 }
 
 export default function Button({
   variant = "primary",
   children,
   className,
-  restProps,
-}: ButtonProps) {
+  ...restProps
+}: ButtonHTMLAttributes<HTMLButtonElement> & ButtonProps) {
   let baseStyle =
     "flex items-center justify-center gap-2 px-4 py-2 rounded-sm trasition-all cursor-pointer ";
   switch (variant) {
@@ -28,7 +27,12 @@ export default function Button({
         "border-primary bg-primary/10 text-primary hover:bg-primary/20 border-1";
       break;
     case "ghost":
-      baseStyle += "bg-primary text-primary-foreground hover:bg-ghost/80";
+      baseStyle +=
+        "bg-transparent text-primary hover:text-primary/80 border-none";
+      break;
+    case "link":
+      baseStyle +=
+        "bg-transparent text-primary !p-0 hover:text-primary/80 hover:underline border-none";
       break;
   }
 

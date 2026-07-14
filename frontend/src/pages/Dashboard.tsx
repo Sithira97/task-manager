@@ -1,0 +1,16 @@
+import Sidebar from "../components/Sidebar.js";
+import Navbar from "../components/Navbar.js";
+
+const Dashboard: React.FC = () => {
+  return (
+    <div className="flex h-screen relative">
+      <Sidebar />
+      <div className="ml-64 w-full h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 overflow-y-auto"></main>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;

@@ -1,15 +1,17 @@
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 
 function App() {
   return (
-    <div className="flex h-screen relative">
-      <Sidebar />
-      <div className="ml-64 w-full h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 overflow-y-auto"></main>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

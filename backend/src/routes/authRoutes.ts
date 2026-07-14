@@ -53,4 +53,21 @@ router.post("/login", async (req: Request, res: Response) => {
   });
 });
 
+router.get("/users", async (req: Request, res: Response) => {
+  try {
+    const [users] = await pool.execute<RowDataPacket[]>(
+      "SELECT id, username, email, role FROM users ORDER BY username ASC",
+    );
+    return res.json({
+      message: "users fetched successfully",
+      users,
+    });
+  } catch (error: any) {
+    console.error("Get Users Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred fetching users" });
+  }
+});
+
 export default router;

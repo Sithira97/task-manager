@@ -19,6 +19,7 @@ router.post("/", async (req: Request, res: Response) => {
     task,
   });
 });
+
 router.get("/", async (req: Request, res: Response) => {
   const [tasks] = await pool.query<RowDataPacket[]>("SELECT * FROM tasks");
   return res.json({
@@ -26,6 +27,7 @@ router.get("/", async (req: Request, res: Response) => {
     tasks,
   });
 });
+
 router.get("/:id", async (req: Request, res: Response) => {
   const [task] = await pool.query<RowDataPacket[]>(
     `SELECT * FROM tasks WHERE id = ${req.params.id}`,
@@ -35,7 +37,8 @@ router.get("/:id", async (req: Request, res: Response) => {
     task,
   });
 });
-router.patch("/:id", async (req: Request, res: Response) => {
+
+router.put("/:id", async (req: Request, res: Response) => {
   await pool.execute<ResultSetHeader>(
     `UPDATE tasks SET status = '${req.body.status}', priority = '${req.body.priority}', updated_at = CURRENT_TIMESTAMP WHERE id = '${req.params.id}'`,
   );
@@ -47,6 +50,33 @@ router.patch("/:id", async (req: Request, res: Response) => {
     task,
   });
 });
+
+router.patch("/status/:id", async (req: Request, res: Response) => {
+  await pool.execute<ResultSetHeader>(
+    `UPDATE tasks SET status = '${req.body.status}', updated_at = CURRENT_TIMESTAMP WHERE id = '${req.params.id}'`,
+  );
+  const [task] = await pool.query<RowDataPacket[]>(
+    `SELECT * FROM tasks WHERE id = ${req.params.id}`,
+  );
+  return res.json({
+    message: "Task status updated successfully",
+    task,
+  });
+});
+
+router.patch("/priority/:id", async (req: Request, res: Response) => {
+  await pool.execute<ResultSetHeader>(
+    `UPDATE tasks SET priority = '${req.body.priority}', updated_at = CURRENT_TIMESTAMP WHERE id = '${req.params.id}'`,
+  );
+  const [task] = await pool.query<RowDataPacket[]>(
+    `SELECT * FROM tasks WHERE id = ${req.params.id}`,
+  );
+  return res.json({
+    message: "Task priority updated successfully",
+    task,
+  });
+});
+
 router.delete("/:id", async (req: Request, res: Response) => {
   await pool.execute(
     `UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE id = ${req.params.id}`,

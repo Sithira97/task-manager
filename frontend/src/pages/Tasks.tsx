@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar.js";
 import { useIsMobile } from "../hooks/IsMobileHook";
 import MobileNav from "../components/MobileNav.js";
 
-const Dashboard: React.FC = () => {
+const Tasks: React.FC = () => {
   const isMobile = useIsMobile();
   return (
     <div className="flex h-screen relative">
@@ -14,4 +14,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default Tasks;

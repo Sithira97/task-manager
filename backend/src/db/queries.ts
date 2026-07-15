@@ -52,3 +52,61 @@ export const fetchTasks = (isAdmin?: boolean): string => {
       LEFT JOIN users u2 ON
         a.user_id = u2.id`;
 };
+
+export const fetchTeams = (id: number, isAdmin?: boolean): string => {
+  return `SELECT t.id,
+        t.title, t.description, ${isAdmin ? "t.deleted_at" : ""}
+        IF(u1.id IS NULL, NULL, JSON_OBJECT(
+            'user_id', u1.id,
+            'username', u1.username,
+            'email', u1.email,
+            'role', u1.role
+        )) AS team_lead,
+        IF(COUNT(a.user_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'user_id', u2.id,
+                'username', u2.username,
+                'email', u2.email,
+                'role', u2.role
+            )
+        )) AS team_members
+      FROM
+        tasks t
+      LEFT JOIN users u1 ON
+        t.created_by = u1.id
+      LEFT JOIN assignees a ON
+        t.id = a.task_id
+      LEFT JOIN users u2 ON
+        a.user_id = u2.id GROUP BY t.id ${isAdmin ? "" : `WHERE t.deleted_at IS NULL AND (t.created_by = ${id} OR a.user_id = ${id})`} `;
+};
+
+export const fetchTeam = (
+  id: number,
+  taskId: number,
+  isAdmin?: boolean,
+): string => {
+  return `SELECT t.id,
+        t.title, t.description, ${isAdmin ? "t.deleted_at" : ""}
+        IF(u1.id IS NULL, NULL, JSON_OBJECT(
+            'user_id', u1.id,
+            'username', u1.username,
+            'email', u1.email,
+            'role', u1.role
+        )) AS team_lead,
+        IF(COUNT(a.user_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'user_id', u2.id,
+                'username', u2.username,
+                'email', u2.email,
+                'role', u2.role
+            )
+        )) AS team_members
+      FROM
+        tasks t
+      LEFT JOIN users u1 ON
+        t.created_by = u1.id
+      LEFT JOIN assignees a ON
+        t.id = a.task_id
+      LEFT JOIN users u2 ON
+        a.user_id = u2.id WHERE ${taskId} = t.id ${isAdmin ? "" : `AND t.deleted_at IS NULL AND (t.created_by = ${id} OR a.user_id = ${id})`} `;
+};

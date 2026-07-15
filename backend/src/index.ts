@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import taskRoutes from "./routes/taskRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import teamRoutes from "./routes/teamRoutes.js";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(express.json());
 // Main App API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/team", teamRoutes);
 
 // Server status endpoint
 app.get("/health", (req: Request, res: Response) => {

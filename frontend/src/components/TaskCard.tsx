@@ -17,16 +17,16 @@ const formatDate = (dateString: string) => {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   return (
-    <div className="bg-card min-w-[300px] max-w-[300px] lg:min-w-auto lg:max-w-full fade-in flex rounded-lg border-1 border-border flex-col p-4">
+    <div className="bg-card min-w-[300px] max-w-[300px] lg:min-w-auto lg:max-w-full overflow-hidden fade-in flex flex-col rounded-lg ring-1 ring-foreground/10 text-sm text-card-foreground p-4">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h3 className="font-bold flex-1 line-clamp-1 md:line-clamp-2">
+          <h3 className="leading-snug text-base font-semibold flex-1 line-clamp-1 md:line-clamp-2">
             {task.title}
           </h3>
         </div>
         <span
-          className={`xl:text-nowrap font-semibold uppercase px-3 py-1 rounded-full text-xs 
-            text-priority-${task.priority} shadow bg-priority-${task.priority}/10`}
+          className={`xl:text-nowrap font-semibold uppercase px-3 py-1 rounded-full text-xs
+            text-priority-${task.priority} bg-priority-${task.priority}/10`}
         >
           {task.priority} <span className="hidden lg:inline">priority</span>
         </span>

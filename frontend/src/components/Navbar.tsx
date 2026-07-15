@@ -12,6 +12,8 @@ import Button from "./Button";
 import { NavLink } from "react-router-dom";
 import type { User } from "../types";
 import { capitalize } from "../utils/words";
+import { useState } from "react";
+import TaskModal from "./TaskModal";
 
 type NavbarProps = {
   user: User | null;
@@ -19,6 +21,7 @@ type NavbarProps = {
 };
 
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
+  const [isModalOpen, setModalOpen] = useState(false);
   return (
     <>
       <nav className="flex justify-between items-center px-6 py-3 border-b gap-2 border-sidebar-border">
@@ -49,7 +52,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
           <h1 className="text-lg font-bold">Task Manager</h1>
         </div>
         <div className="flex">
-          <Button className="w-full m-4">
+          <Button className="w-full m-4" onClick={() => setModalOpen(true)}>
             <Plus />
             New Task
           </Button>
@@ -109,6 +112,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
           </Button>
         </div>
       </aside>
+      <TaskModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 };

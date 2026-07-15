@@ -14,7 +14,7 @@ const Layout: React.FC<{
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await fetch("http://localhost:3001/api/auth/logout", {
+    await fetch("/api/auth/logout", {
       method: "POST",
     });
     localStorage.removeItem("auth_user");
@@ -26,7 +26,7 @@ const Layout: React.FC<{
     <div className="flex h-screen relative">
       <div className="sm:ml-64 w-full h-screen flex flex-col">
         {isMobile ? (
-          <MobileNav />
+          <MobileNav user={user} onLogout={handleLogout} />
         ) : (
           <Navbar user={user} onLogout={handleLogout} />
         )}

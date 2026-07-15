@@ -6,7 +6,7 @@ export interface Task {
   status: "open" | "in_progress" | "done";
   due_date: string;
   created_by: User | null;
-  assignees?: User[] | null;
+  assignees?: [] | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;

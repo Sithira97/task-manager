@@ -5,17 +5,38 @@ import {
   LogOut,
   Plus,
   Search,
-  User,
+  UserIcon,
   Users,
 } from "lucide-react";
 import Button from "./Button";
 
 import { NavLink } from "react-router-dom";
+import { useState, useRef } from "react";
+import type { User } from "../types";
+import { capitalize } from "../utils/words";
+import TaskModal from "./TaskModal";
 
-const MobileNav: React.FC = () => {
+type NavbarProps = {
+  user: User | null;
+  onLogout: () => void;
+};
+
+const MobileNav: React.FC<NavbarProps> = ({ user, onLogout }) => {
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
+
+  document.addEventListener("click", (event) => {
+    if (userMenuRef.current?.contains(event.target as Node)) {
+      setPopoverOpen((prev) => !prev);
+    } else if (!popoverRef.current?.contains(event.target as Node)) {
+      setPopoverOpen(false);
+    }
+  });
   return (
     <>
-      <header className="flex justify-between items-center px-4 sm:px-6 sm:py-3 py-2 border-b gap-2 border-sidebar-border">
+      <header className="relative sticky top-0 z-50 bg-sidebar flex justify-between items-center px-4 sm:px-6 sm:py-3 py-2 border-b gap-2 border-sidebar-border">
         <div className="flex gap-2 items-center sm:hidden">
           <div className="flex items-center gap-2 text-primary rounded-lg p-2">
             <CalendarRange size={28} />
@@ -35,17 +56,37 @@ const MobileNav: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button className="!rounded-full !px-2 sm:!px-4">
-            <User size={16} />
-            <span className="hidden sm:block">Admin</span>
+        <div className="flex items-center gap-3" ref={userMenuRef}>
+          <Button
+            className="!rounded-full !px-2 sm:!px-4"
+            onClick={() => setPopoverOpen(true)}
+          >
+            <UserIcon size={16} />
+            <span className="hidden sm:block">{capitalize(user?.role)}</span>
           </Button>
+        </div>
+        <div
+          ref={popoverRef}
+          className={`absolute fade-in right-2 -bottom-17 min-w-48 ${
+            popoverOpen ? "block" : "fade-out"
+          }`}
+        >
+          <div className="flex bg-card border-border border rounded-md">
+            <Button
+              className="w-full my-2 justify-start !rounded-none"
+              variant="ghost"
+              onClick={onLogout}
+            >
+              <LogOut size={18} />
+              <span>Sign Out</span>
+            </Button>
+          </div>
         </div>
       </header>
 
       <footer className="fixed sm:hidden inset-x-0 bottom-0 z-50 w-full bg-sidebar  border-t border-sidebar-border flex flex-col">
         <nav className="flex-1 overflow-y-auto">
-          <ul className="flex text-text">
+          <ul className="grid grid-cols-4 text-text">
             <li className="flex-1">
               <NavLink
                 to="/"
@@ -53,8 +94,8 @@ const MobileNav: React.FC = () => {
                   `flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
                 }
               >
-                <LayoutDashboard size={20} />
-                <span className="text-xs">Dashboard</span>
+                <LayoutDashboard className="size-5 xs:size-6" />
+                <span className="text-[10px] xs:text-xs">Dashboard</span>
               </NavLink>
             </li>
             <li className="flex-1">
@@ -64,8 +105,8 @@ const MobileNav: React.FC = () => {
                   `flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
                 }
               >
-                <KanbanSquare size={20} />
-                <span className="text-xs">My Tasks</span>
+                <KanbanSquare className="size-5 xs:size-6" />
+                <span className="text-[10px] xs:text-xs">My Tasks</span>
               </NavLink>
             </li>
             <li className="flex-1">
@@ -75,8 +116,8 @@ const MobileNav: React.FC = () => {
                   `flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
                 }
               >
-                <CalendarRange size={20} />
-                <span className="text-xs">Schedule</span>
+                <CalendarRange className="size-5 xs:size-6" />
+                <span className="text-[10px] xs:text-xs">Schedule</span>
               </NavLink>
             </li>
             <li className="flex-1">
@@ -86,20 +127,24 @@ const MobileNav: React.FC = () => {
                   `flex w-full flex-col sm:flex-row items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
                 }
               >
-                <Users size={20} />
-                <span className="text-xs">Teams</span>
+                <Users className="size-5 xs:size-6" />
+                <span className="text-[10px] xs:text-xs">Teams</span>
               </NavLink>
             </li>
           </ul>
         </nav>
 
-        <div className="absolute right-6 -top-18">
-          <Button className="w-full !rounded-full flex items-center justify-center">
+        <div className="absolute right-3 xs:right-6 -top-15 xs:-top-18">
+          <Button
+            className="w-full !rounded-full flex items-center justify-center"
+            onClick={() => setModalOpen(true)}
+          >
             <Plus className="text-white size-8" />
-            New Task
+            <span>New Task</span>
           </Button>
         </div>
       </footer>
+      <TaskModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 };

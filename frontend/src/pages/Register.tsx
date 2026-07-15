@@ -28,7 +28,7 @@ const Register: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const response = await fetch("http://localhost:3001/api/auth/register", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -49,7 +49,7 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center p-1.5">
+    <div className="h-dvh w-dvw flex items-center justify-center p-1.5">
       <div className="bg-card w-full max-w-md rounded-lg p-8 fade-in">
         <div className="flex flex-col items-center text-center mb-5 ">
           <CalendarRange size={42} className="text-primary" />

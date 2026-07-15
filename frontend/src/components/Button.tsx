@@ -28,7 +28,7 @@ export default function Button({
       break;
     case "ghost":
       baseStyle +=
-        "bg-transparent text-primary hover:text-primary/80 border-none";
+        "bg-transparent text-primary hover:bg-primary/10 border-none";
       break;
     case "link":
       baseStyle +=

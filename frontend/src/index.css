@@ -45,6 +45,9 @@
   --color-priority-low: var(--priority-low);
   --color-priority-medium: var(--priority-medium);
   --color-priority-high: var(--priority-high);
+
+  --breakpoint-xxs: 20rem;
+  --breakpoint-xs: 30rem;
 }
 
 :root {
@@ -147,6 +150,19 @@
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    display: none;
+  }
+}
+
 .fade-in {
   animation: fadeIn 0.3s ease-out forwards;
+}
+.fade-out {
+  animation: fadeOut 0.3s ease-out forwards;
 }

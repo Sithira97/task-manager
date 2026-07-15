@@ -8,7 +8,7 @@ const Tasks: React.FC = () => {
   useEffect(() => {
     async function fetchTasks() {
       try {
-        const response = await fetch(`http://localhost:3001/api/tasks`);
+        const response = await fetch(`/api/tasks`);
         const data = await response.json();
         if (data && Array.isArray(data.tasks)) {
           setTasks(data.tasks);

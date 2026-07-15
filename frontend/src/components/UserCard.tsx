@@ -6,7 +6,7 @@ interface UserCardProps {
   user: User;
 }
 
-const TaskCard: React.FC<UserCardProps> = ({ user }) => {
+const UserCard: React.FC<UserCardProps> = ({ user }) => {
   return (
     <div className="bg-card fade-in flex rounded-lg border-1 border-border p-4 items-center justify-between gap-2 mb-2">
       <div className="flex w-full flex-1 items-center gap-3">
@@ -29,4 +29,4 @@ const TaskCard: React.FC<UserCardProps> = ({ user }) => {
   );
 };
 
-export default TaskCard;
+export default UserCard;

@@ -3,12 +3,12 @@
 CREATE DATABASE IF NOT EXISTS `task_manager`;
 USE `task_manager`;
 
--- Drop tables if they exist
+-- Drop tables in reverse dependency order (assignees -> tasks -> users)
 DROP TABLE IF EXISTS `assignees`;
 DROP TABLE IF EXISTS `tasks`;
 DROP TABLE IF EXISTS `users`;
 
--- Create Users table
+-- Create Users table with id, username, email, password, role, timestamps
 CREATE TABLE `users` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `username` VARCHAR(50) NOT NULL UNIQUE,
@@ -20,7 +20,7 @@ CREATE TABLE `users` (
   `deleted_at` TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Create Tasks table
+-- Create Tasks table with foreign key to users
 CREATE TABLE `tasks` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `title` VARCHAR(100) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `tasks` (
   FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Create Assignees table
+-- Create Assignees table with composite primary key
 CREATE TABLE `assignees` (
   `task_id` INT NOT NULL,
   `user_id` INT NOT NULL,

@@ -1,14 +1,10 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import taskRoutes from "./routes/taskRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
 
-dotenv.config();
-
 const app: Express = express();
-const port = process.env.PORT || 3001;
 
 // Configure CORS to allow interactions from frontend server
 app.use(
@@ -44,6 +40,4 @@ app.use(
   },
 );
 
-app.listen(port, () => {
-  console.log(`Task Manager API Server running on http://localhost:${port}`);
-});
+export default app;

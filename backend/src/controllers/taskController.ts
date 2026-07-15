@@ -72,10 +72,10 @@ export const updateTask = async (req: Request, res: Response) => {
     created_by,
     assigned_to,
   } = req.body;
+
   await pool.execute<QueryResult>(
     `UPDATE tasks
-       SET (title, description, priority, status, due_date, created_by)
-       VALUES (?, ?, ?, ?, ?, ?)
+       SET title = ?, description = ?, priority = ?, status = ?, due_date = ?, created_by = ?
        WHERE id = ?`,
     [title, description, priority, status, due_date, created_by, taskId],
   );

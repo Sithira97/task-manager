@@ -16,4 +16,7 @@ export interface User {
   username: string;
   email?: string;
   role?: "admin" | "user";
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
 }

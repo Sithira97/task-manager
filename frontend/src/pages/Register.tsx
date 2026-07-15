@@ -6,9 +6,48 @@ import {
   CalendarRange,
 } from "lucide-react";
 import Button from "../components/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const Register: React.FC = () => {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !email || !password || !confirmPassword) return;
+    if (password !== confirmPassword) {
+      setLocalError("Passwords do not match");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await fetch("http://localhost:3001/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Registration failed");
+      }
+
+      localStorage.setItem("auth_user", JSON.stringify(data.user));
+      navigate("/");
+    } catch (err: any) {
+      setLocalError(err.message || "An error occurred");
+    }
+    setSubmitting(false);
+  };
+
   return (
     <div className="h-screen w-screen flex items-center justify-center p-1.5">
       <div className="bg-card w-full max-w-md rounded-lg p-8 fade-in">
@@ -20,7 +59,7 @@ const Register: React.FC = () => {
           </p>
         </div>
 
-        <form className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="w-full flex flex-col gap-1">
             <label htmlFor="username">Username</label>
             <div className="relative items-center flex flex-1">
@@ -31,6 +70,11 @@ const Register: React.FC = () => {
                 required
                 placeholder="john_doe"
                 className="border-border border-2 bg-input border w-full rounded-md px-3 py-2 pl-10"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (localError) setLocalError(null);
+                }}
               />
             </div>
           </div>
@@ -45,6 +89,11 @@ const Register: React.FC = () => {
                 required
                 placeholder="you@example.com"
                 className="border-border border-2 bg-input w-full rounded-md px-3 py-2 pl-10"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (localError) setLocalError(null);
+                }}
               />
             </div>
           </div>
@@ -59,6 +108,11 @@ const Register: React.FC = () => {
                 required
                 placeholder="Min 6 characters"
                 className="border-border border-2 bg-input w-full rounded-md px-3 py-2 pl-10"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (localError) setLocalError(null);
+                }}
               />
             </div>
           </div>
@@ -73,13 +127,18 @@ const Register: React.FC = () => {
                 required
                 placeholder="Re-enter password"
                 className="border-border border-2 bg-input w-full rounded-md px-3 py-2 pl-10"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (localError) setLocalError(null);
+                }}
               />
             </div>
           </div>
 
-          <Button type="submit" className="w-full mt-5">
+          <Button type="submit" disabled={submitting} className="w-full mt-5">
             <UserPlus size={18} />
-            Register
+            {submitting ? "Creating account..." : "Register"}
           </Button>
         </form>
 

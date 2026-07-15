@@ -5,7 +5,24 @@ import bcrypt from "bcrypt";
 
 // register a new user
 export const register = async (req: Request, res: Response) => {
-  const { username, email, password, role } = req.body;
+  let { username, email, password, role } = req.body;
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  if (!role) {
+    role = "user";
+  }
+
+  const [user] = await pool.execute<RowDataPacket[]>(
+    "SELECT * FROM users WHERE email = ? LIMIT 1",
+    [email],
+  );
+
+  if (user.length > 0) {
+    return res.status(400).json({ error: "User already exists" });
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const [result] = await pool.execute<ResultSetHeader>(
     "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",

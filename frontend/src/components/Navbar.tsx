@@ -10,10 +10,14 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 import { NavLink } from "react-router-dom";
+import type { User } from "../types";
 
-type NavbarProps = {};
+type NavbarProps = {
+  user: User | null;
+  onLogout: () => void;
+};
 
-const Navbar: React.FC<NavbarProps> = () => {
+const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
   return (
     <>
       <nav className="flex justify-between items-center px-6 py-3 border-b gap-2 border-sidebar-border">
@@ -32,7 +36,7 @@ const Navbar: React.FC<NavbarProps> = () => {
         <div className="flex items-center gap-3">
           <Button className="!rounded-full">
             <UserIcon size={16} />
-            <span>Admin</span>
+            <span>{user?.role}</span>
           </Button>
         </div>
       </nav>
@@ -98,7 +102,7 @@ const Navbar: React.FC<NavbarProps> = () => {
           </ul>
         </nav>
         <div className="flex">
-          <Button className="w-full m-4" variant="outline">
+          <Button className="w-full m-4" variant="outline" onClick={onLogout}>
             <LogOut size={18} />
             <span>Sign Out</span>
           </Button>

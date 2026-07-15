@@ -40,7 +40,7 @@ function App() {
         path="/"
         element={
           <Layout user={user} setUser={setUser}>
-            <Dashboard />
+            <Dashboard user={user} />
           </Layout>
         }
       />

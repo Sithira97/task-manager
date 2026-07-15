@@ -5,7 +5,7 @@ export interface Task {
   priority: "low" | "medium" | "high";
   status: "open" | "in_progress" | "done";
   due_date: string;
-  created_by: User | number;
+  created_by: User | null;
   assignees?: User[] | null;
   created_at: string;
   updated_at: string;

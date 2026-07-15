@@ -68,7 +68,7 @@ const Register: React.FC = () => {
                 id="username"
                 type="text"
                 required
-                placeholder="john_doe"
+                placeholder="john doe"
                 className="border-border border-2 bg-input border w-full rounded-md px-3 py-2 pl-10"
                 value={username}
                 onChange={(e) => {

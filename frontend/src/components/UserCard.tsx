@@ -1,5 +1,6 @@
 import React from "react";
 import type { User } from "../types";
+import { capitalize, cleanCapitalize } from "../utils/words";
 
 interface UserCardProps {
   user: User;
@@ -16,13 +17,13 @@ const TaskCard: React.FC<UserCardProps> = ({ user }) => {
         </div>
         <div className="flex flex-col">
           <h3 className="font-bold text-lg text-wrap">
-            {user.username.charAt(0).toUpperCase() + user.username.slice(1)}
+            {cleanCapitalize(user.username)}
           </h3>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
       </div>
       <div className="bg-primary/20 text-xs font-semibold text-primary rounded-full px-2 py-1">
-        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+        {capitalize(user.role)}
       </div>
     </div>
   );

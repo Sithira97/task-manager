@@ -5,9 +5,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Task } from "../types";
+import type { Task, User } from "../types";
+import { cleanCapitalize } from "../utils/words";
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   const fetchTasks = async () => {
@@ -26,8 +27,20 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <main className="flex-1 flex flex-col gap-3 overflow-y-auto mb-16 p-5">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <main className="flex-1 flex flex-col gap-3 overflow-y-auto mb-16 sm:mb-0 p-5">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Workspace Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Welcome back,{" "}
+            <strong className="text-primary">
+              {cleanCapitalize(user?.username)}
+            </strong>
+            . Here is an overview of your team tasks.
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-card flex flex-row items-center gap-3 rounded-lg px-6 py-5">
           <ClipboardList size={22} color="#6366f1" />
           <div className="flex flex-col">

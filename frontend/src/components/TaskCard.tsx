@@ -17,23 +17,25 @@ const formatDate = (dateString: string) => {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   return (
-    <div className="bg-card fade-in flex rounded-lg border-1 border-border flex-col p-4">
+    <div className="bg-card min-w-[300px] max-w-[300px] lg:min-w-auto lg:max-w-full fade-in flex rounded-lg border-1 border-border flex-col p-4">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h3 className="font-bold flex-1 text-wrap">{task.title}</h3>
+          <h3 className="font-bold flex-1 line-clamp-1 md:line-clamp-2">
+            {task.title}
+          </h3>
         </div>
         <span
-          className={`text-nowrap font-semibold uppercase px-3 py-1 rounded-full text-xs 
+          className={`xl:text-nowrap font-semibold uppercase px-3 py-1 rounded-full text-xs 
             text-priority-${task.priority} shadow bg-priority-${task.priority}/10`}
         >
-          {task.priority} priority
+          {task.priority} <span className="hidden lg:inline">priority</span>
         </span>
       </div>
-      <p className="text-muted-foreground text-sm text-wrap">
+      <p className="text-muted-foreground line-clamp-1 md:line-clamp-2 text-sm text-wrap mb-3">
         {task.description}
       </p>
 
-      <div className="flex flex-col gap-1 mb-3 pt-3 mt-3 border-t border-border">
+      <div className="flex mt-auto flex-col gap-1 mb-3 pt-3  border-t border-border">
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <Calendar size={14} className="" />
           <span>Due {formatDate(task.due_date)}</span>
@@ -42,7 +44,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <User size={14} className="" />
           <span className="text-muted-foreground text-sm">Created by:</span>
-          <span className="font-semibold">{task.created_by.toString()}</span>
+          <span className="font-semibold">
+            {task.created_by?.username || "Unknown"}
+          </span>
         </div>
 
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -58,7 +62,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 mt-3">
+      <div className="flex items-center justify-between gap-2">
         <label htmlFor={`status-select-${task.id}`} className="text-sm">
           Status
         </label>

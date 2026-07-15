@@ -11,6 +11,7 @@ import {
 import Button from "./Button";
 import { NavLink } from "react-router-dom";
 import type { User } from "../types";
+import { capitalize } from "../utils/words";
 
 type NavbarProps = {
   user: User | null;
@@ -36,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
         <div className="flex items-center gap-3">
           <Button className="!rounded-full">
             <UserIcon size={16} />
-            <span>{user?.role}</span>
+            <span>{capitalize(user?.role)}</span>
           </Button>
         </div>
       </nav>

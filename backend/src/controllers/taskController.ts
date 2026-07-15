@@ -4,6 +4,38 @@ import { RowDataPacket, ResultSetHeader, QueryResult } from "mysql2";
 import { fetchTaskById, fetchTasks } from "../db/queries.js";
 import { AuthRequest } from "../types/index.js";
 
+const getCreatorId = (created_by: any): number | null => {
+  if (!created_by) return null;
+
+  if (typeof created_by === "object" && created_by !== null) {
+    return created_by.user_id || created_by.id;
+  }
+  if (typeof created_by === "string") {
+    try {
+      const parsed = JSON.parse(created_by);
+      return parsed.user_id || parsed.id || null;
+    } catch {
+      return Number(created_by) || null;
+    }
+  }
+  return Number(created_by) || null;
+};
+
+const getAssigneeIds = (assignees: any): number[] => {
+  if (!assignees) return [];
+  if (Array.isArray(assignees)) {
+    return assignees
+      .map((a: any) => {
+        if (typeof a === "object" && a !== null) {
+          return a.user_id || a.id;
+        }
+        return Number(a);
+      })
+      .filter((id) => id !== null && !isNaN(id));
+  }
+  return [];
+};
+
 // create a new task ---------------------------------------
 export const createTask = async (req: AuthRequest, res: Response) => {
   const { title, description, priority, status, due_date, assignees } =
@@ -59,9 +91,17 @@ export const createTask = async (req: AuthRequest, res: Response) => {
       fetchTaskById(taskId, createdBy.role === "admin"),
     );
 
+    const resTask = newTask[0];
+    if (resTask && createdBy.role !== "admin") {
+      (resTask.deleted_at == null || resTask.deleted_at) &&
+        delete resTask.deleted_at;
+      resTask.updated_at && delete resTask.updated_at;
+      resTask.created_at && delete resTask.created_at;
+    }
+
     return res.status(201).json({
       message: "Task created successfully",
-      task: newTask[0],
+      task: resTask,
     });
   } catch (error: any) {
     console.error("Create Task Error:", error);
@@ -78,14 +118,17 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
   const isAdmin = req.user!.role === "admin";
   try {
     let query = fetchTasks(isAdmin);
-    let countQuery = `SELECT COUNT(*) as total FROM tasks t`;
+    let countQuery = `SELECT COUNT(DISTINCT t.id) as total FROM tasks t`;
+    if (!isAdmin) {
+      countQuery += ` LEFT JOIN assignees a ON t.id = a.task_id`;
+    }
 
     const conditions: string[] = [];
     const params: any[] = [];
 
     if (!isAdmin) {
       conditions.push(
-        "(t.created_by = ? OR (a.user_id = ? AND t.deleted_at IS NULL))",
+        "(t.created_by = ? OR a.user_id = ?) AND t.deleted_at IS NULL",
       );
       params.push(userId, userId);
     }
@@ -125,15 +168,24 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: "Invalid page or limit" });
     }
 
-    query += " ORDER BY t.created_at DESC LIMIT ? OFFSET ?";
+    query += " GROUP BY t.id ORDER BY t.created_at DESC LIMIT ? OFFSET ?";
     const queryParams = [...params, limitNum, offsetNum];
 
     const [tasks] = await pool.query<RowDataPacket[]>(query, queryParams);
     const totalPages = Math.ceil(totalTasks / limitNum);
 
+    const resTasks = tasks.map((task: any) => {
+      if (task && !isAdmin) {
+        (task.deleted_at == null || task.deleted_at) && delete task.deleted_at;
+        task.updated_at && delete task.updated_at;
+        task.created_at && delete task.created_at;
+      }
+      return task;
+    });
+
     return res.json({
       message: "Tasks fetched successfully",
-      tasks,
+      tasks: resTasks,
       pagination: {
         total: totalTasks,
         page: pageNum,
@@ -163,16 +215,22 @@ export const getTaskById = async (req: AuthRequest, res: Response) => {
     }
 
     const task = tasks[0];
+    const creatorId = getCreatorId(task.created_by);
+    const assigneeIds = getAssigneeIds(task.assignees);
+
     if (
       !isAdmin &&
-      task.created_by !== req.user!.id &&
-      task.assigned_to
-        .map((assignee: any) => assignee.user_id)
-        .includes(req.user!.id)
+      creatorId !== req.user!.id &&
+      !assigneeIds.includes(req.user!.id)
     ) {
       return res
         .status(403)
         .json({ error: "Access denied: Unauthorized view" });
+    }
+    if (task && !isAdmin) {
+      (task.deleted_at == null || task.deleted_at) && delete task.deleted_at;
+      task.updated_at && delete task.updated_at;
+      task.created_at && delete task.created_at;
     }
     return res.json({
       message: "Task fetched successfully",
@@ -203,12 +261,11 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
     }
 
     const task = tasks[0];
+    const creatorId = getCreatorId(task.created_by);
+    const assigneeIds = getAssigneeIds(task.assignees);
 
-    const isCreator = task.created_by === req.user!.id;
-    const isAssignee =
-      task.assignees
-        .map((assignee: any) => assignee.user_id)
-        .includes(req.user!.id) || false;
+    const isCreator = creatorId === req.user!.id;
+    const isAssignee = assigneeIds.includes(req.user!.id);
     if (!isAdmin && !isCreator && !isAssignee) {
       return res
         .status(403)
@@ -269,8 +326,11 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
       queryParams.push(taskId);
       await pool.execute<QueryResult>(updateQuery, queryParams);
     }
-
-    if (assignedTo !== undefined && Array.isArray(assignedTo)) {
+    if (
+      assignedTo !== undefined &&
+      Array.isArray(assignedTo) &&
+      assignedTo.length > 0
+    ) {
       await pool.execute(`DELETE FROM assignees WHERE task_id = ?`, [taskId]);
       const assigns = assignedTo.flatMap((user_id: number) => [
         taskId,
@@ -278,7 +338,7 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
       ]);
       const placeholders = assignedTo.map(() => "(?, ?)").join(", ");
       await pool.execute(
-        `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders}`,
+        `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders} `,
         assigns,
       );
     }
@@ -315,12 +375,11 @@ export const updateTaskStatus = async (req: AuthRequest, res: Response) => {
     }
 
     const task = tasks[0];
+    const creatorId = getCreatorId(task.created_by);
+    const assigneeIds = getAssigneeIds(task.assignees);
 
-    const isCreator = task.created_by === req.user!.id;
-    const isAssignee =
-      task.assignees
-        .map((assignee: any) => assignee.user_id)
-        .includes(req.user!.id) || false;
+    const isCreator = creatorId === req.user!.id;
+    const isAssignee = assigneeIds.includes(req.user!.id);
 
     const canEditStatus = isAdmin || isCreator || isAssignee;
     if (!canEditStatus) {
@@ -365,8 +424,8 @@ export const updateTaskPriority = async (req: AuthRequest, res: Response) => {
     }
 
     const task = tasks[0];
-
-    const isCreator = task.created_by === req.user!.id;
+    const creatorId = getCreatorId(task.created_by);
+    const isCreator = creatorId === req.user!.id;
 
     const canEditPriority = isAdmin || isCreator;
     if (!canEditPriority) {
@@ -408,8 +467,8 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
     }
 
     const task = tasks[0];
-
-    const isCreator = task.created_by === req.user!.id;
+    const creatorId = getCreatorId(task.created_by);
+    const isCreator = creatorId === req.user!.id;
 
     const canDelete = isAdmin || isCreator;
     if (!canDelete) {
@@ -446,7 +505,6 @@ export const forceDeleteTask = async (req: AuthRequest, res: Response) => {
     const [tasks] = await pool.execute<RowDataPacket[]>(
       fetchTaskById(Number(taskId), isAdmin),
     );
-
     if (tasks.length === 0) {
       return res.status(404).json({ error: "Task not found" });
     }

@@ -142,11 +142,11 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
 
 // get user by id
 export const getUserById = async (req: AuthRequest, res: Response) => {
-  const { userId } = req.params;
+  const { id } = req.params;
   try {
     const [user] = await pool.execute<RowDataPacket[]>(
       "SELECT id, username, email, role FROM users WHERE id = ?",
-      [userId],
+      [id],
     );
     return res.json({
       message: "User fetched successfully",

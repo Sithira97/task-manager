@@ -30,6 +30,18 @@ app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "OK", timestamp: new Date() });
 });
 
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    console.error("Unhandled Server Error:", err);
+    res.status(500).json({ error: "Internal server error occurred" });
+  },
+);
+
 app.listen(port, () => {
   console.log(`Task Manager API Server running on http://localhost:${port}`);
 });

@@ -9,8 +9,11 @@ import {
   updateTaskPriority,
   updateTaskStatus,
 } from "../controllers/taskController.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
+
+router.use(authenticateToken);
 
 router.post("/", createTask);
 router.get("/", getTasks);

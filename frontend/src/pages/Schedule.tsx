@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import Calendar from "../components/Calendar";
 import type { Task } from "../types";
+import { useAuth } from "../context/AuthContext";
 
 const Schedule: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const { token } = useAuth();
   const fetchTasks = async () => {
     try {
-      const response = await fetch("/api/tasks");
+      const response = await fetch("/api/tasks", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       if (data && Array.isArray(data.tasks)) {
         setTasks(data.tasks);

@@ -6,20 +6,22 @@ import {
   CalendarRange,
 } from "lucide-react";
 import Button from "../components/Button";
-import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import type { AuthProps } from "../types";
 
-const Register: React.FC = () => {
+const Register: React.FC<AuthProps> = ({ onToggleAuth }) => {
+  const { registerUser, error, clearError } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
+    setLocalError(null);
     if (!username || !email || !password || !confirmPassword) return;
     if (password !== confirmPassword) {
       setLocalError("Passwords do not match");
@@ -27,26 +29,12 @@ const Register: React.FC = () => {
     }
 
     setSubmitting(true);
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Registration failed");
-      }
-
-      localStorage.setItem("auth_user", JSON.stringify(data.user));
-      navigate("/");
-    } catch (err: any) {
-      setLocalError(err.message || "An error occurred");
-    }
+    const success = await registerUser(username, email, password);
+    console.log("Registration success:", success);
     setSubmitting(false);
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="h-dvh w-dvw flex items-center justify-center p-1.5">
@@ -58,6 +46,12 @@ const Register: React.FC = () => {
             Get started managing tasks across your team
           </p>
         </div>
+
+        {displayError && (
+          <div className="fade-in text-danger bg-danger/10 border border-danger/50 px-2 py-3 rounded-md mb-4 ">
+            <span className="text-center">{displayError}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="w-full flex flex-col gap-1">
@@ -74,6 +68,7 @@ const Register: React.FC = () => {
                 onChange={(e) => {
                   setUsername(e.target.value);
                   if (localError) setLocalError(null);
+                  if (error) clearError();
                 }}
               />
             </div>
@@ -93,6 +88,7 @@ const Register: React.FC = () => {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (localError) setLocalError(null);
+                  if (error) clearError();
                 }}
               />
             </div>
@@ -112,6 +108,7 @@ const Register: React.FC = () => {
                 onChange={(e) => {
                   setPassword(e.target.value);
                   if (localError) setLocalError(null);
+                  if (error) clearError();
                 }}
               />
             </div>
@@ -131,6 +128,7 @@ const Register: React.FC = () => {
                 onChange={(e) => {
                   setConfirmPassword(e.target.value);
                   if (localError) setLocalError(null);
+                  if (error) clearError();
                 }}
               />
             </div>
@@ -144,9 +142,9 @@ const Register: React.FC = () => {
 
         <div className="text-sm text-muted-foreground flex mt-5 justify-center gap-1.5">
           <span>Already have an account?</span>
-          <Link to={"/login"} className="text-primary font-semibold">
+          <Button variant="link" onClick={onToggleAuth}>
             Sign in
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

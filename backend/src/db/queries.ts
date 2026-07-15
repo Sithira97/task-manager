@@ -50,7 +50,7 @@ export const fetchTasks = (isAdmin?: boolean): string => {
       LEFT JOIN assignees a ON
         t.id = a.task_id
       LEFT JOIN users u2 ON
-        a.user_id = u2.id`;
+        a.user_id = u2.id GROUP BY t.id`;
 };
 
 export const fetchTeams = (id: number, isAdmin?: boolean): string => {

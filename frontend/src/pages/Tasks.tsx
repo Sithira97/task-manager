@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import type { Task } from "../types";
 import TaskCard from "../components/TaskCard.js";
+import { useAuth } from "../context/AuthContext";
 
 const Tasks: React.FC = () => {
+  const { token } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     async function fetchTasks() {
       try {
-        const response = await fetch(`/api/tasks`);
+        const response = await fetch("/api/tasks", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await response.json();
         if (data && Array.isArray(data.tasks)) {
           setTasks(data.tasks);

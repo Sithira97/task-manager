@@ -9,18 +9,15 @@ import {
   Users,
 } from "lucide-react";
 import Button from "./Button";
-import { NavLink } from "react-router-dom";
-import type { User } from "../types";
 import { capitalize } from "../utils/words";
 import { useState } from "react";
 import TaskModal from "./TaskModal";
+import { useAuth } from "../context/AuthContext";
+import { useRoute } from "../context/RouterContext";
 
-type NavbarProps = {
-  user: User | null;
-  onLogout: () => void;
-};
-
-const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
+const Navbar: React.FC = () => {
+  const { logout, user } = useAuth();
+  const { currentView, setCurrentView } = useRoute();
   const [isModalOpen, setModalOpen] = useState(false);
   return (
     <>
@@ -60,53 +57,49 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
         <nav className="flex-1 overflow-y-auto sm:mt-5">
           <ul className="space-y-2 text-text">
             <li>
-              <NavLink
-                to="/"
-                className={({ isActive }) =>
-                  `flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-r-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("dashboard")}
+                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "dashboard" ? "text-primary bg-primary/5 border-r-4" : ""}`}
               >
                 <LayoutDashboard size={20} />
                 <span className="text-xs sm:text-sm">Dashboard</span>
-              </NavLink>
+              </Button>
             </li>
             <li>
-              <NavLink
-                to="/tasks"
-                className={({ isActive }) =>
-                  `flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-r-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("tasks")}
+                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "tasks" ? "text-primary bg-primary/5 border-r-4" : ""}`}
               >
                 <KanbanSquare size={20} />
                 <span className="text-xs sm:text-sm">My Tasks</span>
-              </NavLink>
+              </Button>
             </li>
             <li>
-              <NavLink
-                to="/schedule"
-                className={({ isActive }) =>
-                  `flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-r-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("schedule")}
+                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "schedule" ? "text-primary bg-primary/5 border-r-4" : ""}`}
               >
                 <CalendarRange size={20} />
                 <span className="text-xs sm:text-sm">Schedule</span>
-              </NavLink>
+              </Button>
             </li>
             <li>
-              <NavLink
-                to="/teams"
-                className={({ isActive }) =>
-                  `flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-r-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("teams")}
+                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "teams" ? "text-primary bg-primary/5 border-r-4" : ""}`}
               >
                 <Users size={20} />
                 <span className="text-xs sm:text-sm">Teams</span>
-              </NavLink>
+              </Button>
             </li>
           </ul>
         </nav>
         <div className="flex">
-          <Button className="w-full m-4" variant="outline" onClick={onLogout}>
+          <Button className="w-full m-4" variant="outline" onClick={logout}>
             <LogOut size={18} />
             <span>Sign Out</span>
           </Button>

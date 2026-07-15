@@ -1,43 +1,22 @@
 import { LogIn, Mail, Lock, CalendarRange } from "lucide-react";
 import Button from "../components/Button";
-import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import type { AuthProps } from "../types";
+import { useAuth } from "../context/AuthContext";
 
-const Login: React.FC = () => {
+const Login: React.FC<AuthProps> = ({ onToggleAuth }) => {
+  const { login, error, clearError } = useAuth();
   const [email, setEmail] = useState("admin@taskmanager.com");
   const [password, setPassword] = useState("password123");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!email || !password) return;
 
     setSubmitting(true);
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed");
-      }
-
-      localStorage.setItem("auth_user", JSON.stringify(data.user));
-      if (location.state?.from?.pathname) {
-        navigate(location.state.from.pathname);
-      } else {
-        navigate("/");
-      }
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
-    }
+    const success = await login(email, password);
+    console.log("Login success:", success);
     setSubmitting(false);
   };
 
@@ -51,6 +30,12 @@ const Login: React.FC = () => {
             Enter your details below to access your workspace
           </p>
         </div>
+
+        {error && (
+          <div className="fade-in text-danger bg-danger/10 border border-danger/50 px-2 py-3 rounded-md mb-4">
+            <span className="text-center">{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="w-full flex flex-col gap-2">
@@ -66,7 +51,7 @@ const Login: React.FC = () => {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (error) setError(null);
+                  if (error) clearError();
                 }}
               />
             </div>
@@ -85,7 +70,7 @@ const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  if (error) setError(null);
+                  if (error) clearError();
                 }}
               />
             </div>
@@ -99,9 +84,9 @@ const Login: React.FC = () => {
 
         <div className="text-sm text-muted-foreground flex mt-5 justify-center gap-1.5">
           <span>New to Task Manager?</span>
-          <Link to={"/register"} className="text-primary font-semibold">
+          <Button variant="link" onClick={onToggleAuth}>
             Create an account
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

@@ -10,18 +10,15 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 
-import { NavLink } from "react-router-dom";
 import { useState, useRef } from "react";
-import type { User } from "../types";
 import { capitalize } from "../utils/words";
 import TaskModal from "./TaskModal";
+import { useAuth } from "../context/AuthContext";
+import { useRoute } from "../context/RouterContext";
 
-type NavbarProps = {
-  user: User | null;
-  onLogout: () => void;
-};
-
-const MobileNav: React.FC<NavbarProps> = ({ user, onLogout }) => {
+const MobileNav: React.FC = () => {
+  const { logout, user } = useAuth();
+  const { currentView, setCurrentView } = useRoute();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -75,7 +72,7 @@ const MobileNav: React.FC<NavbarProps> = ({ user, onLogout }) => {
             <Button
               className="w-full my-2 justify-start !rounded-none"
               variant="ghost"
-              onClick={onLogout}
+              onClick={logout}
             >
               <LogOut size={18} />
               <span>Sign Out</span>
@@ -88,48 +85,44 @@ const MobileNav: React.FC<NavbarProps> = ({ user, onLogout }) => {
         <nav className="flex-1 overflow-y-auto">
           <ul className="grid grid-cols-4 text-text">
             <li className="flex-1">
-              <NavLink
-                to="/"
-                className={({ isActive }) =>
-                  `flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("dashboard")}
+                className={`flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${currentView === "dashboard" ? "text-primary bg-primary/5 border-t-4" : ""}`}
               >
                 <LayoutDashboard className="size-5 xs:size-6" />
                 <span className="text-[10px] xs:text-xs">Dashboard</span>
-              </NavLink>
+              </Button>
             </li>
             <li className="flex-1">
-              <NavLink
-                to="/tasks"
-                className={({ isActive }) =>
-                  `flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("tasks")}
+                className={`flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${currentView === "tasks" ? "text-primary bg-primary/5 border-t-4" : ""}`}
               >
                 <KanbanSquare className="size-5 xs:size-6" />
                 <span className="text-[10px] xs:text-xs">My Tasks</span>
-              </NavLink>
+              </Button>
             </li>
             <li className="flex-1">
-              <NavLink
-                to="/schedule"
-                className={({ isActive }) =>
-                  `flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("schedule")}
+                className={`flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${currentView === "schedule" ? "text-primary bg-primary/5 border-t-4" : ""}`}
               >
                 <CalendarRange className="size-5 xs:size-6" />
                 <span className="text-[10px] xs:text-xs">Schedule</span>
-              </NavLink>
+              </Button>
             </li>
             <li className="flex-1">
-              <NavLink
-                to="/teams"
-                className={({ isActive }) =>
-                  `flex w-full flex-col sm:flex-row items-center gap-2 px-6 py-2 hover:bg-accent ${isActive ? "text-primary bg-primary/5 border-t-4" : ""}`
-                }
+              <Button
+                variant="nav"
+                onClick={() => setCurrentView("teams")}
+                className={`flex w-full flex-col sm:flex-row items-center gap-2 px-6 py-2 hover:bg-accent ${currentView === "teams" ? "text-primary bg-primary/5 border-t-4" : ""}`}
               >
                 <Users className="size-5 xs:size-6" />
                 <span className="text-[10px] xs:text-xs">Teams</span>
-              </NavLink>
+              </Button>
             </li>
           </ul>
         </nav>

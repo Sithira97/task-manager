@@ -1,75 +1,61 @@
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Tasks from "./pages/Tasks";
 import Schedule from "./pages/Schedule";
 import Teams from "./pages/Teams";
 import Layout from "./components/Layout";
-import { useEffect, useState } from "react";
-import type { User } from "./types";
+import { useState } from "react";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { RouterProvider, useRoute } from "./context/RouterContext";
 
-function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    const savedUser = localStorage.getItem("auth_user");
-    const publicPaths = ["/login", "/register"];
-
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem("auth_user");
-        if (!publicPaths.includes(location.pathname)) {
-          navigate("/login");
-        }
-      }
-    } else if (!publicPaths.includes(location.pathname)) {
-      navigate("/login");
-    }
-  }, [navigate, location.pathname]);
-
+const App: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route
-        path="/"
-        element={
-          <Layout user={user} setUser={setUser}>
-            <Dashboard user={user} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/tasks"
-        element={
-          <Layout user={user} setUser={setUser}>
-            <Tasks />
-          </Layout>
-        }
-      />
-      <Route
-        path="/schedule"
-        element={
-          <Layout user={user} setUser={setUser}>
-            <Schedule />
-          </Layout>
-        }
-      />
-      <Route
-        path="/teams"
-        element={
-          <Layout user={user} setUser={setUser}>
-            <Teams />
-          </Layout>
-        }
-      />
-    </Routes>
+    <AuthProvider>
+      <RouterProvider>
+        <MainApp />
+      </RouterProvider>
+    </AuthProvider>
   );
-}
+};
+
+const MainApp: React.FC = () => {
+  const { token, user, loading } = useAuth();
+  const { currentView } = useRoute();
+  const [showRegister, setShowRegister] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center">
+        <div className="pulse">Initializing Workspace Session...</div>
+      </div>
+    );
+  }
+
+  if (token && user) {
+    let viewComponent: React.ReactNode;
+    switch (currentView) {
+      case "dashboard":
+        viewComponent = <Dashboard />;
+        break;
+      case "tasks":
+        viewComponent = <Tasks />;
+        break;
+      case "schedule":
+        viewComponent = <Schedule />;
+        break;
+      case "teams":
+        viewComponent = <Teams />;
+        break;
+    }
+    return <Layout>{viewComponent}</Layout>;
+  }
+
+  return showRegister ? (
+    <Register onToggleAuth={() => setShowRegister(false)} />
+  ) : (
+    <Login onToggleAuth={() => setShowRegister(true)} />
+  );
+};
 
 export default App;

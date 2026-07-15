@@ -20,3 +20,29 @@ export interface User {
   updated_at?: string;
   deleted_at?: string | null;
 }
+
+export interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  registerUser: (
+    username: string,
+    email: string,
+    password: string,
+  ) => Promise<boolean>;
+  logout: () => void;
+  clearError: () => void;
+}
+
+export interface AuthProps {
+  onToggleAuth: () => void;
+}
+
+export type Route = "dashboard" | "tasks" | "schedule" | "teams";
+
+export interface RouterContextType {
+  currentView: Route;
+  setCurrentView: (view: Route) => void;
+}

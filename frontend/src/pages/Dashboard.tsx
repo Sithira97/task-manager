@@ -5,15 +5,21 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Task, User } from "../types";
+import type { Task } from "../types";
 import { cleanCapitalize } from "../utils/words";
+import { useAuth } from "../context/AuthContext";
 
-const Dashboard: React.FC<{ user: User | null }> = ({ user }) => {
+const Dashboard: React.FC = () => {
+  const { user, token } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch("/api/tasks");
+      const response = await fetch("/api/tasks", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       if (data && Array.isArray(data.tasks)) {
         setTasks(data.tasks);

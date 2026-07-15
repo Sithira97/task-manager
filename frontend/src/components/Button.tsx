@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from "react";
 
 interface ButtonProps {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "link";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "link" | "nav";
   children: React.ReactNode;
   className?: string;
 }
@@ -33,6 +33,9 @@ export default function Button({
     case "link":
       baseStyle +=
         "bg-transparent text-primary !p-0 hover:text-primary/80 hover:underline border-none";
+      break;
+    case "nav":
+      baseStyle += "!rounded-none";
       break;
   }
 

@@ -1,5 +1,6 @@
-export const fetchTaskById = `SELECT t.id,
-        t.title, t.description, t.priority, t.status, t.due_date, t.created_at,
+export const fetchTaskById = (id: number, isAdmin?: boolean): string => {
+  return `SELECT t.id,
+        t.title, t.description, t.priority, t.status, t.due_date, ${isAdmin ? "t.created_at, t.updated_at, t.deleted_at" : ""},
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
             'user_id', u1.id,
             'username', u1.username,
@@ -22,10 +23,12 @@ export const fetchTaskById = `SELECT t.id,
         t.id = a.task_id
       LEFT JOIN users u2 ON
         a.user_id = u2.id
-      WHERE t.id = ?`;
+      WHERE t.id = ${id} ${isAdmin ? "" : "AND t.deleted_at IS NULL"}`;
+};
 
-export const fetchTasks = `SELECT t.id,
-        t.title, t.description, t.priority, t.status, t.due_date, t.created_at,
+export const fetchTasks = (isAdmin?: boolean): string => {
+  return `SELECT t.id,
+        t.title, t.description, t.priority, t.status, t.due_date, ${isAdmin ? "t.created_at, t.updated_at, t.deleted_at" : ""},
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
             'user_id', u1.id,
             'username', u1.username,
@@ -47,5 +50,5 @@ export const fetchTasks = `SELECT t.id,
       LEFT JOIN assignees a ON
         t.id = a.task_id
       LEFT JOIN users u2 ON
-        a.user_id = u2.id
-      GROUP BY t.id`;
+        a.user_id = u2.id`;
+};

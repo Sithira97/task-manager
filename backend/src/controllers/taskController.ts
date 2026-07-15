@@ -2,148 +2,463 @@ import { Request, Response } from "express";
 import pool from "../db/config.js";
 import { RowDataPacket, ResultSetHeader, QueryResult } from "mysql2";
 import { fetchTaskById, fetchTasks } from "../db/queries.js";
+import { AuthRequest } from "../types/index.js";
 
-// create a new task
-export const createTask = async (req: Request, res: Response) => {
-  const {
-    title,
-    description,
-    status,
-    priority,
-    due_date,
-    created_by,
-    assigned_to,
-  } = req.body;
+// create a new task ---------------------------------------
+export const createTask = async (req: AuthRequest, res: Response) => {
+  const { title, description, priority, status, due_date, assignees } =
+    req.body;
+  const createdBy = req.user!;
 
-  const [result] = await pool.execute<ResultSetHeader>(
-    `INSERT INTO tasks
+  if (!title || !description || !due_date) {
+    return res
+      .status(400)
+      .json({ error: "Title, description, and due date are required" });
+  }
+
+  try {
+    let assignedTo: number[] = [];
+    if (assignees && Array.isArray(assignees) && assignees.length > 0) {
+      const [existingUsers] = await pool.execute<RowDataPacket[]>(
+        "SELECT id FROM users WHERE id IN (?)",
+        [assignees],
+      );
+      if (existingUsers.length === 0) {
+        return res
+          .status(404)
+          .json({ error: "One or more assignees do not exist" });
+      }
+      assignedTo = existingUsers.map((user) => user.id);
+    }
+
+    const taskPriority = priority || "medium";
+    const taskStatus = status || "to_do";
+
+    const [result] = await pool.execute<ResultSetHeader>(
+      `INSERT INTO tasks
     (title, description, priority, status, due_date, created_by)
     VALUES (?, ?, ?, ?, ?, ?)`,
-    [title, description, priority, status, due_date, created_by],
-  );
-
-  const taskId = result.insertId;
-
-  if (assigned_to && Array.isArray(assigned_to) && assigned_to.length > 0) {
-    const assigns = assigned_to.flatMap((user_id: number) => [taskId, user_id]);
-    const placeholders = assigned_to.map(() => "(?, ?)").join(", ");
-    await pool.execute(
-      `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders}`,
-      assigns,
+      [title, description, taskPriority, taskStatus, due_date, createdBy.id],
     );
-  }
 
-  const [task] = await pool.query<RowDataPacket[]>(fetchTaskById, [taskId]);
-  return res.status(201).json({
-    message: "Task created successfully",
-    task,
-  });
-};
+    const taskId = result.insertId;
 
-// retrieve all tasks
-export const getTasks = async (req: Request, res: Response) => {
-  const [tasks] = await pool.query<RowDataPacket[]>(fetchTasks);
-  return res.json({
-    message: "Tasks fetched successfully",
-    tasks,
-  });
-};
+    if (assignedTo && Array.isArray(assignedTo) && assignedTo.length > 0) {
+      const assigns = assignedTo.flatMap((user_id: number) => [
+        taskId,
+        user_id,
+      ]);
+      const placeholders = assignedTo.map(() => "(?, ?)").join(", ");
+      await pool.execute(
+        `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders}`,
+        assigns,
+      );
+    }
 
-// retrieve a single task
-export const getTaskById = async (req: Request, res: Response) => {
-  const taskId = req.params.id;
-
-  const [task] = await pool.query<RowDataPacket[]>(fetchTaskById, [taskId]);
-  return res.json({
-    message: "Task fetched successfully",
-    task,
-  });
-};
-
-// update a task
-export const updateTask = async (req: Request, res: Response) => {
-  const taskId = req.params.id;
-  const {
-    title,
-    description,
-    status,
-    priority,
-    due_date,
-    created_by,
-    assigned_to,
-  } = req.body;
-
-  await pool.execute<QueryResult>(
-    `UPDATE tasks
-       SET title = ?, description = ?, priority = ?, status = ?, due_date = ?, created_by = ?
-       WHERE id = ?`,
-    [title, description, priority, status, due_date, created_by, taskId],
-  );
-
-  if (assigned_to && Array.isArray(assigned_to) && assigned_to.length > 0) {
-    await pool.execute(`DELETE FROM assignees WHERE task_id = ?`, [taskId]);
-    const assigns = assigned_to.flatMap((user_id: number) => [taskId, user_id]);
-    const placeholders = assigned_to.map(() => "(?, ?)").join(", ");
-    await pool.execute(
-      `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders}`,
-      assigns,
+    const [newTask] = await pool.query<RowDataPacket[]>(
+      fetchTaskById(taskId, createdBy.role === "admin"),
     );
-  }
 
-  const [task] = await pool.query<RowDataPacket[]>(fetchTaskById, [taskId]);
-  return res.json({
-    message: "Task updated successfully",
-    task,
-  });
+    return res.status(201).json({
+      message: "Task created successfully",
+      task: newTask[0],
+    });
+  } catch (error: any) {
+    console.error("Create Task Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred creating task" });
+  }
 };
 
-// update a task's status
-export const updateTaskStatus = async (req: Request, res: Response) => {
+// retrieve all tasks ---------------------------------------
+export const getTasks = async (req: AuthRequest, res: Response) => {
+  const { page = "1", limit = "20", search, status, priority } = req.query;
+  const userId = req.user!.id;
+  const isAdmin = req.user!.role === "admin";
+  try {
+    let query = fetchTasks(isAdmin);
+    let countQuery = `SELECT COUNT(*) as total FROM tasks t`;
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (!isAdmin) {
+      conditions.push(
+        "(t.created_by = ? OR (a.user_id = ? AND t.deleted_at IS NULL))",
+      );
+      params.push(userId, userId);
+    }
+
+    if (search) {
+      conditions.push("(t.title LIKE ? OR t.description LIKE ?)");
+      const searchPattern = `%${search}%`;
+      params.push(searchPattern, searchPattern);
+    }
+
+    if (status) {
+      conditions.push("t.status = ?");
+      params.push(status);
+    }
+
+    if (priority) {
+      conditions.push("t.priority = ?");
+      params.push(priority);
+    }
+
+    if (conditions.length > 0) {
+      query += " WHERE " + conditions.join(" AND ");
+      countQuery += " WHERE " + conditions.join(" AND ");
+    }
+
+    const [countResult] = await pool.execute<RowDataPacket[]>(
+      countQuery,
+      params,
+    );
+    const totalTasks = countResult[0].total;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offsetNum = (pageNum - 1) * limitNum;
+
+    if (isNaN(pageNum) || isNaN(limitNum) || pageNum < 1 || limitNum < 1) {
+      return res.status(400).json({ error: "Invalid page or limit" });
+    }
+
+    query += " ORDER BY t.created_at DESC LIMIT ? OFFSET ?";
+    const queryParams = [...params, limitNum, offsetNum];
+
+    const [tasks] = await pool.query<RowDataPacket[]>(query, queryParams);
+    const totalPages = Math.ceil(totalTasks / limitNum);
+
+    return res.json({
+      message: "Tasks fetched successfully",
+      tasks,
+      pagination: {
+        total: totalTasks,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: totalPages,
+      },
+    });
+  } catch (error: any) {
+    console.error("Get Tasks Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred fetching tasks" });
+  }
+};
+
+// retrieve a single task --------------------------------------
+export const getTaskById = async (req: AuthRequest, res: Response) => {
+  const taskId = req.params.id;
+  const isAdmin = req.user!.role === "admin";
+  try {
+    const [tasks] = await pool.query<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const task = tasks[0];
+    if (
+      !isAdmin &&
+      task.created_by !== req.user!.id &&
+      task.assigned_to
+        .map((assignee: any) => assignee.user_id)
+        .includes(req.user!.id)
+    ) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: Unauthorized view" });
+    }
+    return res.json({
+      message: "Task fetched successfully",
+      task,
+    });
+  } catch (error: any) {
+    console.error("Get Task ID Error:", error);
+    return res.status(500).json({
+      error: "Internal server error occurred retrieving task details",
+    });
+  }
+};
+
+// update a task ---------------------------------------
+export const updateTask = async (req: AuthRequest, res: Response) => {
+  const taskId = req.params.id;
+  const { title, description, priority, status, due_date, assignees } =
+    req.body;
+  const isAdmin = req.user!.role === "admin";
+
+  try {
+    const [tasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const task = tasks[0];
+
+    const isCreator = task.created_by === req.user!.id;
+    const isAssignee =
+      task.assignees
+        .map((assignee: any) => assignee.user_id)
+        .includes(req.user!.id) || false;
+    if (!isAdmin && !isCreator && !isAssignee) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: Unauthorized update" });
+    }
+
+    const canEditAll = isAdmin || isCreator;
+    let assignedTo: number[] = task.assignees
+      ? task.assignees.map((assignee: any) => assignee.user_id)
+      : [];
+    if (assignees !== undefined && canEditAll) {
+      if (assignees && Array.isArray(assignees) && assignees.length > 0) {
+        const [existingUsers] = await pool.execute<RowDataPacket[]>(
+          "SELECT id FROM users WHERE id IN (?)",
+          [assignees],
+        );
+        if (existingUsers.length === 0) {
+          return res
+            .status(404)
+            .json({ error: "One or more assignees do not exist" });
+        }
+        assignedTo = existingUsers.map((user) => user.id);
+      }
+    }
+
+    const canEditStatus = isAdmin || isCreator || isAssignee;
+
+    let updateFields = [];
+    let queryParams = [];
+
+    if (title && canEditAll) {
+      updateFields.push("title = ?");
+      queryParams.push(title);
+    }
+
+    if (description && canEditAll) {
+      updateFields.push("description = ?");
+      queryParams.push(description);
+    }
+
+    if (priority && canEditAll) {
+      updateFields.push("priority = ?");
+      queryParams.push(priority);
+    }
+
+    if (status && canEditStatus) {
+      updateFields.push("status = ?");
+      queryParams.push(status);
+    }
+
+    if (due_date && canEditAll) {
+      updateFields.push("due_date = ?");
+      queryParams.push(due_date);
+    }
+
+    if (updateFields.length > 0) {
+      const updateQuery = `UPDATE tasks SET ${updateFields.join(", ")} WHERE id = ?`;
+      queryParams.push(taskId);
+      await pool.execute<QueryResult>(updateQuery, queryParams);
+    }
+
+    if (assignedTo !== undefined && Array.isArray(assignedTo)) {
+      await pool.execute(`DELETE FROM assignees WHERE task_id = ?`, [taskId]);
+      const assigns = assignedTo.flatMap((user_id: number) => [
+        taskId,
+        user_id,
+      ]);
+      const placeholders = assignedTo.map(() => "(?, ?)").join(", ");
+      await pool.execute(
+        `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders}`,
+        assigns,
+      );
+    }
+
+    const [updatedTasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    return res.json({
+      message: "Task updated successfully",
+      task: updatedTasks[0],
+    });
+  } catch (error: any) {
+    console.error("Update Task Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred updating task" });
+  }
+};
+
+// update a task's status ---------------------------------------
+export const updateTaskStatus = async (req: AuthRequest, res: Response) => {
   const taskId = req.params.id;
   const { status } = req.body;
-  await pool.execute<ResultSetHeader>(
-    `UPDATE tasks SET status = ? WHERE id = ?`,
-    [status, taskId],
-  );
-  const [task] = await pool.query<RowDataPacket[]>(fetchTaskById, [taskId]);
-  return res.json({
-    message: "Task status updated successfully",
-    task,
-  });
+  const isAdmin = req.user!.role === "admin";
+
+  try {
+    const [tasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const task = tasks[0];
+
+    const isCreator = task.created_by === req.user!.id;
+    const isAssignee =
+      task.assignees
+        .map((assignee: any) => assignee.user_id)
+        .includes(req.user!.id) || false;
+
+    const canEditStatus = isAdmin || isCreator || isAssignee;
+    if (!canEditStatus) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: Unauthorized update" });
+    }
+
+    await pool.execute<ResultSetHeader>(
+      `UPDATE tasks SET status = ? WHERE id = ?`,
+      [status, taskId],
+    );
+    const [updatedTasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    return res.json({
+      message: "Task status updated successfully",
+      task: updatedTasks[0],
+    });
+  } catch (error: any) {
+    console.error("Update Task Status Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred updating task status" });
+  }
 };
 
-// update a task's priority
-export const updateTaskPriority = async (req: Request, res: Response) => {
+// update a task's priority ---------------------------------------
+export const updateTaskPriority = async (req: AuthRequest, res: Response) => {
   const taskId = req.params.id;
   const { priority } = req.body;
-  await pool.execute<ResultSetHeader>(
-    `UPDATE tasks SET priority = ? WHERE id = ?`,
-    [priority, taskId],
-  );
-  const [task] = await pool.query<RowDataPacket[]>(fetchTaskById, [taskId]);
-  return res.json({
-    message: "Task priority updated successfully",
-    task,
-  });
+  const isAdmin = req.user!.role === "admin";
+
+  try {
+    const [tasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const task = tasks[0];
+
+    const isCreator = task.created_by === req.user!.id;
+
+    const canEditPriority = isAdmin || isCreator;
+    if (!canEditPriority) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: Unauthorized update" });
+    }
+    await pool.execute<ResultSetHeader>(
+      `UPDATE tasks SET priority = ? WHERE id = ?`,
+      [priority, taskId],
+    );
+    const [updatedTasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+    return res.json({
+      message: "Task priority updated successfully",
+      task: updatedTasks[0],
+    });
+  } catch (error: any) {
+    console.error("Update Task Priority Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred updating task priority" });
+  }
 };
 
-// soft delete a task
-export const deleteTask = async (req: Request, res: Response) => {
+// soft delete a task ---------------------------------------
+export const deleteTask = async (req: AuthRequest, res: Response) => {
   const taskId = req.params.id;
-  await pool.execute(
-    `UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?`,
-    [taskId],
-  );
-  return res.json({
-    message: "Task deleted successfully",
-  });
+  const isAdmin = req.user!.role === "admin";
+
+  try {
+    const [tasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const task = tasks[0];
+
+    const isCreator = task.created_by === req.user!.id;
+
+    const canDelete = isAdmin || isCreator;
+    if (!canDelete) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: Unauthorized delete" });
+    }
+    await pool.execute(
+      `UPDATE tasks SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [taskId],
+    );
+    return res.json({
+      message: "Task deleted successfully",
+    });
+  } catch (error: any) {
+    console.error("Delete Task Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred deleting task" });
+  }
 };
 
-// force delete a task
-export const forceDeleteTask = async (req: Request, res: Response) => {
+// force delete a task ---------------------------------------
+export const forceDeleteTask = async (req: AuthRequest, res: Response) => {
   const taskId = req.params.id;
-  await pool.execute(`DELETE FROM tasks WHERE id = ?`, [taskId]);
-  return res.json({
-    message: "Task deleted successfully",
-  });
+  const isAdmin = req.user!.role === "admin";
+
+  try {
+    const [tasks] = await pool.execute<RowDataPacket[]>(
+      fetchTaskById(Number(taskId), isAdmin),
+    );
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    if (!isAdmin) {
+      return res
+        .status(403)
+        .json({ error: "Access denied: Unauthorized delete" });
+    }
+    await pool.execute(`DELETE FROM tasks WHERE id = ?`, [taskId]);
+    return res.json({
+      message: "Task permanently deleted successfully",
+    });
+  } catch (error: any) {
+    console.error("Force Delete Task Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred force deleting task" });
+  }
 };

@@ -5,13 +5,13 @@ import {
   login,
   register,
 } from "../controllers/authController.js";
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
 router.post("/register", register);
 router.post("/login", login);
-router.get("/users", authenticateToken, getUsers);
-router.get("/users/:id", authenticateToken, getUserById);
+router.get("/users", authenticateToken, requireAdmin, getUsers);
+router.get("/users/:id", authenticateToken, requireAdmin, getUserById);
 
 export default router;

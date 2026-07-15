@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import pool from "../db/config.js";
 import { RowDataPacket, ResultSetHeader, QueryResult } from "mysql2";
 import { fetchTaskById, fetchTasks } from "../db/queries.js";
@@ -436,6 +436,11 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
 export const forceDeleteTask = async (req: AuthRequest, res: Response) => {
   const taskId = req.params.id;
   const isAdmin = req.user!.role === "admin";
+  if (!isAdmin) {
+    return res
+      .status(403)
+      .json({ error: "Access denied: Unauthorized delete" });
+  }
 
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
@@ -446,11 +451,6 @@ export const forceDeleteTask = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Task not found" });
     }
 
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: "Access denied: Unauthorized delete" });
-    }
     await pool.execute(`DELETE FROM tasks WHERE id = ?`, [taskId]);
     return res.json({
       message: "Task permanently deleted successfully",

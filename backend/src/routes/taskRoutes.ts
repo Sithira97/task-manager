@@ -9,7 +9,7 @@ import {
   updateTaskPriority,
   updateTaskStatus,
 } from "../controllers/taskController.js";
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -22,6 +22,6 @@ router.put("/:id", updateTask);
 router.patch("/:id/status", updateTaskStatus);
 router.patch("/:id/priority", updateTaskPriority);
 router.delete("/:id", deleteTask);
-router.delete("/:id/force", forceDeleteTask);
+router.delete("/:id/force", requireAdmin, forceDeleteTask);
 
 export default router;

@@ -1,77 +1,129 @@
 import { Request, Response } from "express";
 import pool from "../db/config.js";
-import { RowDataPacket, ResultSetHeader, QueryResult } from "mysql2";
+import jwt from "jsonwebtoken";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
 import bcrypt from "bcrypt";
+import { AuthRequest } from "../types/index.js";
+
+const JWT_SECRET =
+  process.env.JWT_SECRET || "super_secret_development_key_123!";
 
 // register a new user
 export const register = async (req: Request, res: Response) => {
   let { username, email, password, role } = req.body;
+
   if (!username || !email || !password) {
-    return res.status(400).json({ error: "All fields are required" });
+    return res
+      .status(400)
+      .json({ error: "Username, email, and password are required" });
   }
 
-  if (!role) {
-    role = "user";
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: "Invalid email address format" });
   }
 
-  const [user] = await pool.execute<RowDataPacket[]>(
-    "SELECT * FROM users WHERE email = ? LIMIT 1",
-    [email],
-  );
-
-  if (user.length > 0) {
-    return res.status(400).json({ error: "User already exists" });
+  if (password.length < 6) {
+    return res
+      .status(400)
+      .json({ error: "Password must be at least 6 characters long" });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const [result] = await pool.execute<ResultSetHeader>(
-    "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-    [username, email, hashedPassword, role],
-  );
+  try {
+    const [existingUsers] = await pool.execute<RowDataPacket[]>(
+      "SELECT id FROM users WHERE username = ? OR email = ?",
+      [username, email],
+    );
 
-  const userId = result.insertId;
-  return res.status(201).json({
-    message: "User registered successfully",
-    user: {
-      id: userId,
-      username,
-      email,
-      role,
-    },
-  });
+    if (existingUsers.length > 0) {
+      return res
+        .status(409)
+        .json({ error: "Username or email already in use" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userRole = role === "admin" ? "admin" : "user";
+
+    const [result] = await pool.execute<ResultSetHeader>(
+      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
+      [username, email, hashedPassword, userRole],
+    );
+
+    const userId = result.insertId;
+
+    const token = jwt.sign(
+      { id: userId, username, email, role: userRole },
+      JWT_SECRET,
+      { expiresIn: "24h" },
+    );
+
+    return res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: { id: userId, username, email, role: userRole },
+    });
+  } catch (error: any) {
+    console.error("Registration Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred during registration" });
+  }
 };
 
 // login a user
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  const [user] = await pool.execute<RowDataPacket[]>(
-    "SELECT * FROM users WHERE email = ? LIMIT 1",
-    [email],
-  );
 
-  if (user.length === 0) {
-    return res.status(401).json({ message: "Invalid credentials" });
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
   }
 
-  const validPassword = await bcrypt.compare(password, user[0].password);
+  try {
+    const [users] = await pool.execute<RowDataPacket[]>(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+    );
 
-  if (!validPassword) {
-    return res.status(401).json({ message: "Invalid credentials" });
+    if (users.length === 0) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const user = users[0];
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+    const token = jwt.sign(
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+      JWT_SECRET,
+      { expiresIn: "24h" },
+    );
+    return res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error: any) {
+    console.error("Login Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred during login" });
   }
-
-  return res.status(200).json({
-    message: "Login successful",
-    user: {
-      id: user[0].id,
-      username: user[0].username,
-      email: user[0].email,
-      role: user[0].role,
-    },
-  });
 };
 
 // get users
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: AuthRequest, res: Response) => {
   try {
     const [users] = await pool.execute<RowDataPacket[]>(
       "SELECT id, username, email, role FROM users",
@@ -89,7 +141,7 @@ export const getUsers = async (req: Request, res: Response) => {
 };
 
 // get user by id
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: AuthRequest, res: Response) => {
   const { userId } = req.params;
   try {
     const [user] = await pool.execute<RowDataPacket[]>(

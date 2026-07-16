@@ -59,7 +59,9 @@ const MobileNav: React.FC = () => {
             onClick={() => setPopoverOpen(true)}
           >
             <UserIcon size={16} />
-            <span className="hidden sm:block">{capitalize(user?.role)}</span>
+            <span className="hidden sm:block">
+              {capitalize(user?.role || "")}
+            </span>
           </Button>
         </div>
         <div

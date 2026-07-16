@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center gap-3">
           <Button className="!rounded-full">
             <UserIcon size={16} />
-            <span>{capitalize(user?.role)}</span>
+            <span>{capitalize(user?.role || "")}</span>
           </Button>
         </div>
       </nav>

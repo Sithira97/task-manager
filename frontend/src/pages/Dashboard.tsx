@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
           <p className="text-sm text-muted-foreground">
             Welcome back,{" "}
             <strong className="text-primary">
-              {cleanCapitalize(user?.username)}
+              {cleanCapitalize(user?.username || "")}
             </strong>
             . Here is an overview of your team tasks.
           </p>

@@ -23,7 +23,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
         </div>
       </div>
       <div className="bg-primary/20 text-xs font-semibold text-primary rounded-full px-2 py-1">
-        {capitalize(user.role)}
+        {capitalize(user.role || "user")}
       </div>
     </div>
   );

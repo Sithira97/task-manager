@@ -31,6 +31,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
     setDueDate("");
     setAssignedTo([]);
     setFormError(null);
+    setSubmitting(false);
   }, [isOpen]);
 
   // Handle native HTML5 dialog element opening/closing via standard API
@@ -177,7 +178,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
               multiple
               id="task-assignee"
               value={assignedTo}
-              onChange={(e) => {}}
+              onChange={(e) => {
+                console.log(e);
+              }}
               className="border-border border-1 bg-input border w-full rounded-md px-3 py-2"
             >
               <option value={-1}>Unassigned</option>

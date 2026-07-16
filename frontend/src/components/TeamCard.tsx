@@ -8,7 +8,7 @@ interface UserCardProps {
 }
 
 const TeamCard: React.FC<UserCardProps> = ({ team }) => {
-  const teamMembers = team.team_members.filter(
+  const teamMembers = team.team_members?.filter(
     (member) => member.username !== team.team_lead?.username,
   );
 
@@ -28,7 +28,7 @@ const TeamCard: React.FC<UserCardProps> = ({ team }) => {
         </span>
       </div>
 
-      {teamMembers.length > 0 && (
+      {teamMembers && teamMembers.length > 0 && (
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <User size={14} className="" />
           <span className="text-muted-foreground text-sm">Team members:</span>

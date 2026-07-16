@@ -1,52 +1,86 @@
-import TaskCard from "../components/TaskCard.js";
+import type { Task } from "@/types";
+import TaskCard from "../components/TaskCard";
 import { useTasks } from "../context/TaskContext";
+import {
+  Kanban,
+  KanbanBoard,
+  KanbanColumn,
+  KanbanColumnContent,
+  KanbanOverlay,
+} from "@/components/reui/kanban";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useState, type ComponentProps } from "react";
+import { Badge } from "@/components/reui/badge";
+
+const COLUMN_TITLES: Record<string, string> = {
+  open: "Open",
+  in_progress: "In Progress",
+  done: "Done",
+};
+
+interface TaskColumnProps extends Omit<
+  ComponentProps<typeof KanbanColumn>,
+  "children"
+> {
+  tasks: Task[];
+  isOverlay?: boolean;
+}
+
+function TaskColumn({ value, tasks, isOverlay, ...props }: TaskColumnProps) {
+  return (
+    <KanbanColumn value={value} {...props}>
+      <Card className="mb-2.5 w-full flex flex-1 gap-0 py-0">
+        <CardHeader className="flex items-center justify-between pt-4">
+          <div className="flex items-center gap-2.5">
+            <span className="text-sm font-semibold">
+              {COLUMN_TITLES[value]}
+            </span>
+            <Badge variant="outline">{tasks.length}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="px-0">
+          <KanbanColumnContent
+            value={value}
+            className="flex-row lg:flex-col overflow-x-auto p-4"
+          >
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                asHandle={!isOverlay}
+                isOverlay={isOverlay}
+              />
+            ))}
+          </KanbanColumnContent>
+        </CardContent>
+      </Card>
+    </KanbanColumn>
+  );
+}
 
 const Tasks: React.FC = () => {
   const { tasks } = useTasks();
 
+  const [columns, setColumns] = useState<Record<string, Task[]>>({
+    open: tasks.filter((task) => task.status === "open"),
+    in_progress: tasks.filter((task) => task.status === "in_progress"),
+    done: tasks.filter((task) => task.status === "done"),
+  });
+
   return (
-    <main className="flex-1 flex flex-col gap-3 overflow-y-auto mb-16 sm:mb-0 pt-5 pb-36 lg:px-5">
-      <div className="max-w-7xl lg:mx-auto">
-        <div className="grid lg:grid-cols-3 gap-3 lg:gap-2">
-          <div className="grid lg:block">
-            <p className="font-semibold px-5 lg:text-center">Open Tasks</p>
-            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-visible py-2">
-              {tasks
-                .filter((task) => task.status === "open")
-                .map((value) => (
-                  <TaskCard key={value.id} task={value} />
-                ))}
-            </div>
-          </div>
-          <div className="grid lg:block">
-            <p className="font-semibold px-5 lg:text-center">
-              In Progress Tasks
-            </p>
-            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-visible p-2">
-              {tasks
-                .filter((task) => task.status === "in_progress")
-                .map((value) => (
-                  <TaskCard key={value.id} task={value} />
-                ))}
-            </div>
-          </div>
-          <div className="grid lg:block">
-            <p className="font-semibold px-5 lg:text-center">Done Tasks</p>
-            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-visible p-2">
-              {tasks
-                .filter((task) => task.status === "done")
-                .map((value) => (
-                  <TaskCard key={value.id} task={value} />
-                ))}
-            </div>
-          </div>
-        </div>
-        {tasks.length === 0 && (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-muted-foreground">No tasks found</p>
-          </div>
-        )}
-      </div>
+    <main className="flex-1 max-w-7xl mx-auto flex flex-col gap-3 w-full mb-16 sm:mb-0 pt-5 lg:px-5 over">
+      <Kanban
+        value={columns}
+        onValueChange={setColumns}
+        getItemValue={(item) => item.id.toString()}
+      >
+        <KanbanBoard className="flex-1 flex flex-col gap-2  lg:grid auto-rows-fr grid-cols-3  w-full px-4">
+          {Object.entries(columns).map(([columnValue, tasks]) => (
+            <TaskColumn key={columnValue} value={columnValue} tasks={tasks} />
+          ))}
+        </KanbanBoard>
+        <KanbanOverlay className="bg-muted/10 rounded-md border-2 border-dashed" />
+      </Kanban>
     </main>
   );
 };

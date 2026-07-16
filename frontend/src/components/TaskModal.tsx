@@ -1,21 +1,61 @@
-import React, { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import type { Task, User } from "../types";
-import Button from "./Button";
+import { Button } from "@/components/ui/button";
 import { useTasks } from "../context/TaskContext";
 import { useAuth } from "../context/AuthContext";
-import Select from "./Select";
-import { cleanCapitalize } from "../utils/words";
+import { cleanCapitalize } from "../lib/words";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Field, FieldLabel } from "./ui/field";
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const statusValues = [
+  { value: "open", label: "Open" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "done", label: "Done" },
+];
+
+const priorityValues = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+];
+
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const { createTask } = useTasks();
   const { token } = useAuth();
+  const anchor = useComboboxAnchor();
 
   // Form State
   const [title, setTitle] = useState("");
@@ -30,14 +70,16 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    setTitle("");
-    setDescription("");
-    setPriority("medium");
-    setStatus("open");
-    setDueDate("");
-    setAssignedTo([]);
-    setFormError(null);
-    setSubmitting(false);
+    if (isOpen) {
+      setTitle("");
+      setDescription("");
+      setPriority("medium");
+      setStatus("open");
+      setDueDate("");
+      setAssignedTo([]);
+      setFormError(null);
+      setSubmitting(false);
+    }
   }, [isOpen]);
 
   useEffect(() => {
@@ -57,21 +99,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
     };
     fetchUsers();
   }, [isOpen, token]);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (isOpen) {
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else {
-      if (dialog.open) {
-        dialog.close();
-      }
-    }
-  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,132 +127,136 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <dialog
-      className="m-auto border-0 rounded-lg p-5 w-[calc(100%-10px)] md:w-[42rem] overflow-visible"
-      ref={dialogRef}
-      onClose={onClose}
-      onCancel={(e) => e.preventDefault()}
-      aria-labelledby="modal-title"
-    >
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-semibold text-foreground">
-          Create New Task
-        </h2>
-        <button
-          onClick={onClose}
-          className="text-text hover:text-red-500 transition-colors"
-          title="Close Modal"
-        >
-          <X size={20} />
-        </button>
-      </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[42rem] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle id="modal-title">Create New Task</DialogTitle>
+          <DialogDescription>
+            Fill in the details to create a new task in your workspace.
+          </DialogDescription>
+        </DialogHeader>
 
-      {formError && (
-        <div className="fade-in text-red-500 text-sm mb-4">{formError}</div>
-      )}
+        {formError && (
+          <div className="fade-in text-red-500 text-sm mb-4">{formError}</div>
+        )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
-          <label htmlFor="task-priority">Priority</label>
-          <Select
-            options={[
-              { value: "low", label: "Low" },
-              { value: "medium", label: "Medium" },
-              { value: "high", label: "High" },
-            ]}
-            value={priority}
-            onChange={(val) => setPriority(val as Task["priority"])}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1 mb-2">
-          <label htmlFor="task-title">Title *</label>
-          <input
-            id="task-title"
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Implement login authentication"
-            className="border-border border-1 bg-input border w-full rounded-md px-3 py-2"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1 mb-2">
-          <label htmlFor="task-desc">Description *</label>
-          <textarea
-            id="task-desc"
-            required
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Write Express JWT verification and token storage."
-            className="border-border border-1 bg-input border w-full rounded-md px-3 py-2"
-          />
-        </div>
-
-        <div className="flex flex-row gap-2 mb-2">
-          <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
-            <label htmlFor="task-status">Status</label>
-            <Select
-              options={[
-                { value: "open", label: "Open" },
-                { value: "in_progress", label: "In Progress" },
-                { value: "done", label: "Done" },
-              ]}
-              value={status}
-              onChange={(val) => setStatus(val as Task["status"])}
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2 mb-2">
-          <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
-            <label htmlFor="task-due">Due Date *</label>
-            <input
-              id="task-due"
-              type="date"
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Field>
+            <FieldLabel htmlFor="task-title">Title *</FieldLabel>
+            <Input
+              id="task-title"
+              type="text"
               required
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="border-border border-1 bg-input border w-full rounded-md px-3 py-[9px]"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Implement login authentication"
             />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="task-desc">Description *</FieldLabel>
+            <Textarea
+              id="task-desc"
+              required
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Write Express JWT verification and token storage."
+            />
+          </Field>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Field>
+              <FieldLabel htmlFor="task-status">Status</FieldLabel>
+              <Select items={statusValues} value={status}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {statusValues.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="task-priority">Priority</FieldLabel>
+              <Select items={priorityValues} value={priority}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {priorityValues.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field className="col-span-2 md:col-span-1">
+              <FieldLabel htmlFor="task-due">Due Date *</FieldLabel>
+              <Input
+                id="task-due"
+                type="date"
+                required
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </Field>
           </div>
 
-          <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
-            <label htmlFor="task-assignee">Assignees</label>
-            <Select
-              multiple
-              options={users.map((u) => ({
-                value: u.id!,
-                label: cleanCapitalize(u.username),
-              }))}
-              value={assignedTo}
-              onChange={(val) => setAssignedTo(val)}
-              placeholder="Select assignees..."
-            />
-          </div>
-        </div>
+          <Field>
+            <FieldLabel htmlFor="task-assignee">Assignees</FieldLabel>
+            <Combobox multiple autoHighlight items={users}>
+              <ComboboxChips ref={anchor} className="w-full">
+                <ComboboxValue>
+                  {(values) => (
+                    <>
+                      {values.map((value: number) => (
+                        <ComboboxChip key={value}>
+                          {cleanCapitalize(
+                            users.find((user) => user.id === value)?.username,
+                          )}
+                        </ComboboxChip>
+                      ))}
+                      <ComboboxChipsInput />
+                    </>
+                  )}
+                </ComboboxValue>
+              </ComboboxChips>
+              <ComboboxContent anchor={anchor}>
+                <ComboboxEmpty>No items found.</ComboboxEmpty>
+                <ComboboxList>
+                  {(item: User, index: number) => (
+                    <ComboboxItem key={index} value={item.id}>
+                      {cleanCapitalize(item.username)}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </Field>
 
-        <div className="flex justify-end gap-2 mt-4">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={onClose}
-            className="btn btn-secondary"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="btn btn-primary"
-          >
-            {submitting ? "Saving..." : "Save Task"}
-          </Button>
-        </div>
-      </form>
-    </dialog>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" type="button" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Saving..." : "Save Task"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

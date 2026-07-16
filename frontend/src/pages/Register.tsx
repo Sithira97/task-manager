@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   UserPlus,
   Mail,
@@ -5,10 +6,23 @@ import {
   User as UserIcon,
   CalendarRange,
 } from "lucide-react";
-import Button from "../components/Button";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import type { AuthProps } from "../types";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Field, FieldLabel } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 const Register: React.FC<AuthProps> = ({ onToggleAuth }) => {
   const { registerUser, error, clearError } = useAuth();
@@ -19,7 +33,7 @@ const Register: React.FC<AuthProps> = ({ onToggleAuth }) => {
   const [localError, setLocalError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
     if (!username || !email || !password || !confirmPassword) return;
@@ -37,116 +51,134 @@ const Register: React.FC<AuthProps> = ({ onToggleAuth }) => {
   const displayError = localError || error;
 
   return (
-    <div className="h-dvh w-dvw flex items-center justify-center p-1.5">
-      <div className="bg-card w-full max-w-md rounded-lg p-8 fade-in">
-        <div className="flex flex-col items-center text-center mb-5 ">
+    <div className="h-dvh w-dvw flex items-center justify-center p-4 bg-background text-foreground">
+      <Card className="w-full max-w-md border border-border shadow-md">
+        <CardHeader className="flex flex-col items-center text-center pb-2">
           <CalendarRange size={42} className="text-primary" />
-          <h1 className="text-2xl font-bold mt-2">Create your account</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <CardTitle className="text-2xl font-bold mt-2">
+            Create your account
+          </CardTitle>
+          <CardDescription className="text-muted-foreground text-sm mt-1">
             Get started managing tasks across your team
-          </p>
-        </div>
+          </CardDescription>
+        </CardHeader>
 
-        {displayError && (
-          <div className="fade-in text-danger bg-danger/10 border border-danger/50 px-2 py-3 rounded-md mb-4 ">
-            <span className="text-center">{displayError}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="w-full flex flex-col gap-1">
-            <label htmlFor="username">Username</label>
-            <div className="relative items-center flex flex-1">
-              <UserIcon size={18} className="absolute left-3" />
-              <input
-                id="username"
-                type="text"
-                required
-                placeholder="john doe"
-                className="border-border border-2 bg-input border w-full rounded-md px-3 py-2 pl-10"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  if (localError) setLocalError(null);
-                  if (error) clearError();
-                }}
-              />
+        <CardContent>
+          {displayError && (
+            <div className="fade-in text-destructive bg-destructive/10 border border-destructive/30 px-3 py-2 rounded-md mb-4 text-sm text-center">
+              {displayError}
             </div>
-          </div>
+          )}
 
-          <div className="w-full flex flex-col gap-1">
-            <label htmlFor="email">Email Address</label>
-            <div className="relative items-center flex flex-1">
-              <Mail size={18} className="absolute left-3" />
-              <input
-                id="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                className="border-border border-2 bg-input w-full rounded-md px-3 py-2 pl-10"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (localError) setLocalError(null);
-                  if (error) clearError();
-                }}
-              />
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <Field>
+              <FieldLabel htmlFor="username">Username</FieldLabel>
+              <InputGroup className="h-10">
+                <InputGroupAddon className="px-3">
+                  <UserIcon size={18} />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="username"
+                  type="text"
+                  required
+                  placeholder="john doe"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (localError) setLocalError(null);
+                    if (error) clearError();
+                  }}
+                />
+              </InputGroup>
+            </Field>
 
-          <div className="w-full flex flex-col gap-1">
-            <label htmlFor="password">Password</label>
-            <div className="relative items-center flex flex-1">
-              <Lock size={18} className="absolute left-3" />
-              <input
-                id="password"
-                type="password"
-                required
-                placeholder="Min 6 characters"
-                className="border-border border-2 bg-input w-full rounded-md px-3 py-2 pl-10"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (localError) setLocalError(null);
-                  if (error) clearError();
-                }}
-              />
-            </div>
-          </div>
+            <Field>
+              <FieldLabel htmlFor="email">Email Address</FieldLabel>
+              <InputGroup className="h-10">
+                <InputGroupAddon className="px-3">
+                  <Mail size={18} />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (localError) setLocalError(null);
+                    if (error) clearError();
+                  }}
+                />
+              </InputGroup>
+            </Field>
 
-          <div className="w-full flex flex-col gap-1">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <div className="relative items-center flex flex-1">
-              <Lock size={18} className="absolute left-3" />
-              <input
-                id="confirmPassword"
-                type="password"
-                required
-                placeholder="Re-enter password"
-                className="border-border border-2 bg-input w-full rounded-md px-3 py-2 pl-10"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  if (localError) setLocalError(null);
-                  if (error) clearError();
-                }}
-              />
-            </div>
-          </div>
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <InputGroup className="h-10">
+                <InputGroupAddon className="px-3">
+                  <Lock size={18} />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="password"
+                  type="password"
+                  required
+                  placeholder="Min 6 characters"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (localError) setLocalError(null);
+                    if (error) clearError();
+                  }}
+                />
+              </InputGroup>
+            </Field>
 
-          <Button type="submit" disabled={submitting} className="w-full mt-5">
-            <UserPlus size={18} />
-            {submitting ? "Creating account..." : "Register"}
-          </Button>
-        </form>
+            <Field>
+              <FieldLabel htmlFor="confirmPassword">
+                Confirm Password
+              </FieldLabel>
+              <InputGroup className="h-10">
+                <InputGroupAddon className="px-3">
+                  <Lock size={18} />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  placeholder="Re-enter password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (localError) setLocalError(null);
+                    if (error) clearError();
+                  }}
+                />
+              </InputGroup>
+            </Field>
 
-        <div className="text-sm text-muted-foreground flex mt-5 justify-center gap-1.5">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full mt-2 h-10"
+            >
+              <UserPlus size={18} />
+              {submitting ? "Creating account..." : "Register"}
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="text-sm text-muted-foreground flex justify-center gap-1.5 border-t border-border pt-4">
           <span>Already have an account?</span>
-          <Button variant="link" onClick={onToggleAuth}>
+          <Button
+            variant="link"
+            onClick={onToggleAuth}
+            className="text-primary font-semibold"
+          >
             Sign in
           </Button>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

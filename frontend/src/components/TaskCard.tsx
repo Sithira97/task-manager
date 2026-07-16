@@ -1,13 +1,46 @@
-import React from "react";
-import { Calendar } from "lucide-react";
-import type { Task } from "../types";
+import { type ComponentProps } from "react";
+import { Calendar, Crown } from "lucide-react";
+import type { Task, User } from "../types";
 import { useTasks } from "../context/TaskContext";
-import { AvatarPopup } from "./Avatar";
-import Select from "./Select";
+import {
+  Card,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+} from "./ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { KanbanItem, KanbanItemHandle } from "./reui/kanban";
+import { Badge } from "./reui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { cleanCapitalize, getInitials } from "@/lib/words";
 
-interface TaskCardProps {
+interface TaskCardProps extends Omit<
+  ComponentProps<typeof KanbanItem>,
+  "value" | "children"
+> {
   task: Task;
+  asHandle?: boolean;
+  isOverlay?: boolean;
 }
+const statusValues = [
+  { value: "open", label: "Open" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "done", label: "Done" },
+];
 
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = {
@@ -18,72 +51,112 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
-const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+const TaskCard: React.FC<TaskCardProps> = ({
+  task,
+  asHandle,
+  isOverlay,
+  ...props
+}) => {
   const { updateTaskStatus } = useTasks();
 
   const handleStatusChange = async (newStatus: Task["status"]) => {
     await updateTaskStatus(task.id, newStatus);
   };
 
-  return (
-    <div className="bg-card min-w-[300px] max-w-[300px] lg:min-w-auto lg:max-w-full fade-in flex flex-col rounded-lg ring-1 ring-foreground/10 text-sm text-card-foreground p-4 relative focus-within:z-20 hover:z-10">
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h3 className="leading-snug text-base font-semibold flex-1 line-clamp-1 md:line-clamp-2">
+  const assigneeList = task.assignees?.filter(
+    (assignee) => assignee.username !== task.created_by?.username,
+  );
+  const overflowAssignees =
+    assigneeList && assigneeList.length > 3 && assigneeList.slice(3);
+
+  const cardContent = (
+    <Card>
+      <CardContent className="flex flex-col gap-2.5 w-64 max-w lg:w-auto">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="line-clamp-1 text-sm font-medium">
             {task.title}
-          </h3>
-        </div>
-        <span
-          className={`xl:text-nowrap font-semibold uppercase px-3 py-1 rounded-full text-xs
-            text-priority-${task.priority} bg-priority-${task.priority}/10`}
-        >
-          {task.priority} <span className="hidden lg:inline">priority</span>
-        </span>
-      </div>
-      <p className="text-muted-foreground line-clamp-1 md:line-clamp-2 text-sm text-wrap mb-3">
-        {task.description}
-      </p>
-
-      <div className="flex mt-auto flex-col gap-2 mb-3 pt-3 border-t border-border">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Calendar size={14} className="" />
-          <span>Due {formatDate(task.due_date)}</span>
+          </CardTitle>
+          <Badge
+            variant={
+              task.priority === "high"
+                ? "destructive-light"
+                : task.priority === "medium"
+                  ? "warning-light"
+                  : "success-light"
+            }
+            className="pointer-events-none h-5 shrink-0 rounded-sm px-1.5 text-xs capitalize"
+          >
+            {task.priority}
+          </Badge>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="text-muted-foreground text-sm shrink-0">
-            Created by:
-          </span>
-          {task.created_by ? (
-            <AvatarPopup user={task.created_by} size="sm" />
-          ) : (
-            <span className="font-semibold text-sm">Unknown</span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="text-muted-foreground text-sm shrink-0">
-            Assignees:
-          </span>
-          <div className="flex -space-x-2 items-center overflow-visible">
-            {task.assignees && task.assignees.length > 0 ? (
-              task.assignees.map((assignee) => (
-                <AvatarPopup
-                  key={assignee.id || assignee.username}
-                  user={assignee}
-                  size="sm"
-                />
-              ))
-            ) : (
-              <span className="text-muted-foreground italic text-sm pl-2">
-                Unassigned
-              </span>
-            )}
+        <CardDescription className="text-muted-foreground line-clamp-1 lg:line-clamp-2 text-sm">
+          {task.description}
+        </CardDescription>
+        <div className="flex flex-col gap-2 pt-3 border-t border-border mt-auto">
+          <div className="flex justify-between items-end text-sm text-muted-foreground">
+            <AvatarGroup className="flex justify-end items-end">
+              {task.created_by && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Avatar>
+                      <AvatarFallback>
+                        {getInitials(task.created_by.username)}
+                      </AvatarFallback>
+                      <span className="absolute left-0 bottom-0">
+                        <Crown className="size-3 fill-yellow-500 text-yellow-500" />
+                      </span>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {cleanCapitalize(task.created_by.username)}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {assigneeList?.slice(0, 3).map((assignee: User) => (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Avatar size="sm">
+                      <AvatarFallback>
+                        {getInitials(assignee.username)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {cleanCapitalize(assignee.username)}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+              {overflowAssignees && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <AvatarGroupCount>
+                      +{overflowAssignees.length}
+                    </AvatarGroupCount>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="flex flex-col gap-1">
+                    {overflowAssignees?.map((assignee) => (
+                      <p key={assignee.id}>
+                        {cleanCapitalize(assignee.username)}
+                      </p>
+                    ))}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </AvatarGroup>
+            <div className="flex items-center gap-1.5">
+              <Calendar size={14} />
+              {task.due_date && (
+                <time className="text-[10px] whitespace-nowrap tabular-nums">
+                  {formatDate(task.due_date)}
+                </time>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </CardContent>
 
-      <div className="flex items-center justify-between gap-4 mt-3">
+      <CardFooter className="flex">
         <label
           htmlFor={`status-select-${task.id}`}
           className="text-sm font-medium shrink-0"
@@ -92,17 +165,36 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         </label>
         <div className="flex-1 min-w-0">
           <Select
-            options={[
-              { value: "open", label: "Open" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "done", label: "Done" },
-            ]}
+            items={statusValues}
             value={task.status}
-            onChange={handleStatusChange}
-          />
+            onValueChange={handleStatusChange}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {statusValues.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
+  );
+
+  return (
+    <KanbanItem value={task.id.toString()} {...props}>
+      {asHandle && !isOverlay ? (
+        <KanbanItemHandle>{cardContent}</KanbanItemHandle>
+      ) : (
+        cardContent
+      )}
+    </KanbanItem>
   );
 };
 

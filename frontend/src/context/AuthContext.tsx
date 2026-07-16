@@ -36,6 +36,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         body: JSON.stringify({ email, password }),
       });
 
+      if (!response.ok && response.status > 500) {
+        throw new Error("Login failed");
+      }
+
       const data = await response.json();
 
       if (!response.ok) {

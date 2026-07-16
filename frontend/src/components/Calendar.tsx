@@ -5,12 +5,8 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 import type { Task } from "../types";
-import {
-  getDaysInMonth,
-  getFirstDayOfMonth,
-  isSameDay,
-} from "../utils/calender";
-import { getPriorityClasses, getStatusIcon } from "../utils/enums";
+import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "../lib/calender";
+import { getPriorityClasses, getStatusIcon } from "../lib/enums";
 
 const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());

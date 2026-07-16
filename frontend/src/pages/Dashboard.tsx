@@ -1,12 +1,14 @@
+import React from "react";
 import {
   CheckCircle2,
   PlayCircle,
   ClipboardList,
   AlertCircle,
 } from "lucide-react";
-import { cleanCapitalize } from "../utils/words";
+import { cleanCapitalize } from "../lib/words";
 import { useAuth } from "../context/AuthContext";
 import { useTasks } from "../context/TaskContext";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -27,43 +29,58 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card flex flex-row items-center gap-3 rounded-lg px-6 py-5">
-          <ClipboardList size={22} color="#6366f1" />
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Total Tasks</span>
-            <h3 className="text-2xl font-bold">{tasks.length}</h3>
-          </div>
-        </div>
+        <Card className="border border-border shadow-sm ">
+          <CardContent className="flex flex-col">
+            <div className="flex gap-2 items-center">
+              <ClipboardList size={22} color="#6366f1" />
+              <span className="text-sm text-muted-foreground">Total Tasks</span>
+            </div>
+            <h3 className="text-3xl font-bold items-end text-right">
+              {tasks.length}
+            </h3>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card flex flex-row items-center gap-3 rounded-lg px-6 py-5">
-          <AlertCircle size={22} color="#3b82f6" />
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Open</span>
-            <h3 className="text-2xl font-bold">
+        <Card className="border border-border shadow-sm">
+          <CardContent className="flex flex-col">
+            <div className="flex gap-2 items-center">
+              <AlertCircle size={22} color="#3b82f6" />
+              <span className="text-sm text-muted-foreground">Open Tasks</span>
+            </div>
+            <h3 className="text-3xl font-bold items-end text-right">
               {tasks.filter((task) => task.status === "open").length}
             </h3>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card flex flex-row items-center gap-3 rounded-lg px-6 py-5">
-          <PlayCircle size={22} color="#10b981" />
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">In Progress</span>
-            <h3 className="text-2xl font-bold">
+        <Card className="border border-border shadow-sm">
+          <CardContent className="flex flex-col">
+            <div className="flex gap-2 items-center">
+              <PlayCircle size={22} color="#10b981" />
+
+              <span className="text-sm text-muted-foreground">
+                Tasks In Progress
+              </span>
+            </div>
+            <h3 className="text-3xl font-bold items-end text-right">
               {tasks.filter((task) => task.status === "in_progress").length}
             </h3>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card flex flex-row items-center gap-3 rounded-lg px-6 py-5">
-          <CheckCircle2 size={22} color="#f59e0b" />
-          <div className="flex flex-col">
-            <span className="text-sm text-muted-foreground">Completed</span>
-            <h3 className="text-2xl font-bold">
+        <Card className="border border-border shadow-sm">
+          <CardContent className="flex flex-col">
+            <div className="flex gap-2 items-center">
+              <CheckCircle2 size={22} color="#f59e0b" />
+              <span className="text-sm text-muted-foreground">
+                Completed Tasks
+              </span>
+            </div>
+            <h3 className="text-3xl font-bold items-end text-right">
               {tasks.filter((task) => task.status === "done").length}
             </h3>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

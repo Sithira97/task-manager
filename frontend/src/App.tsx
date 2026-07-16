@@ -9,16 +9,19 @@ import { useState } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { RouterProvider, useRoute } from "./context/RouterContext";
 import { TaskProvider } from "./context/TaskContext";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <RouterProvider>
-        <TaskProvider>
-          <MainApp />
-        </TaskProvider>
-      </RouterProvider>
-    </AuthProvider>
+    <TooltipProvider>
+      <AuthProvider>
+        <RouterProvider>
+          <TaskProvider>
+            <MainApp />
+          </TaskProvider>
+        </RouterProvider>
+      </AuthProvider>
+    </TooltipProvider>
   );
 };
 

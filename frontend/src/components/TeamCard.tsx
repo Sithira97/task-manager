@@ -1,7 +1,6 @@
 import React from "react";
 import type { Team } from "../types";
-import { cleanCapitalize } from "../utils/words";
-import { User } from "lucide-react";
+import { AvatarPopup } from "./Avatar";
 
 interface UserCardProps {
   team: Team;
@@ -20,23 +19,31 @@ const TeamCard: React.FC<UserCardProps> = ({ team }) => {
           {team.description}
         </p>
       </div>
-      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-        <User size={14} className="" />
-        <span className="text-muted-foreground text-sm">Team Lead:</span>
-        <span className="font-semibold">
-          {cleanCapitalize(team.team_lead?.username) || "Unknown"}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="text-muted-foreground text-sm shrink-0">
+          Team Lead:
         </span>
+        {team.team_lead ? (
+          <AvatarPopup user={team.team_lead} size="sm" />
+        ) : (
+          <span className="font-semibold text-sm">Unknown</span>
+        )}
       </div>
 
       {teamMembers && teamMembers.length > 0 && (
-        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-          <User size={14} className="" />
-          <span className="text-muted-foreground text-sm">Team members:</span>
-          <span className="font-semibold">
-            {teamMembers
-              ?.map((member) => cleanCapitalize(member.username))
-              .join(", ")}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm shrink-0">
+            Team members:
           </span>
+          <div className="flex -space-x-2 items-center overflow-visible">
+            {teamMembers.map((member) => (
+              <AvatarPopup
+                key={member.id || member.username}
+                user={member}
+                size="sm"
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

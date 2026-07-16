@@ -11,7 +11,7 @@ import {
 import Button from "./Button";
 
 import { useState, useRef } from "react";
-import { capitalize } from "../utils/words";
+import { capitalize, cleanCapitalize } from "../utils/words";
 import TaskModal from "./TaskModal";
 import { useAuth } from "../context/AuthContext";
 import { useRoute } from "../context/RouterContext";
@@ -66,11 +66,17 @@ const MobileNav: React.FC = () => {
         </div>
         <div
           ref={popoverRef}
-          className={`absolute fade-in right-2 -bottom-17 min-w-48 ${
+          className={`absolute fade-in right-2 -bottom-32 min-w-48 ${
             popoverOpen ? "block" : "fade-out"
           }`}
         >
-          <div className="flex bg-card border-border border rounded-md">
+          <div className="flex flex-col bg-card border-border border rounded-md">
+            <div className="flex flex-col mx-4 py-2 border-b border-border">
+              <h3 className="font-bold text-lg text-wrap">
+                {cleanCapitalize(user.username)}
+              </h3>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+            </div>
             <Button
               className="w-full my-2 justify-start !rounded-none"
               variant="ghost"

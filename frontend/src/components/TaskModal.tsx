@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import type { Task } from "../types";
+import type { Task, User } from "../types";
 import Button from "./Button";
+import { useTasks } from "../context/TaskContext";
+import { useAuth } from "../context/AuthContext";
+import Select from "./Select";
+import { cleanCapitalize } from "../utils/words";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -10,6 +14,8 @@ interface TaskModalProps {
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const { createTask } = useTasks();
+  const { token } = useAuth();
 
   // Form State
   const [title, setTitle] = useState("");
@@ -17,12 +23,12 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
   const [priority, setPriority] = useState<Task["priority"]>("medium");
   const [status, setStatus] = useState<Task["status"]>("open");
   const [dueDate, setDueDate] = useState("");
-  const [assignedTo, setAssignedTo] = useState<[]>([]);
+  const [assignedTo, setAssignedTo] = useState<(string | number)[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Initialize fields on open or change of edit target
   useEffect(() => {
     setTitle("");
     setDescription("");
@@ -34,7 +40,24 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
     setSubmitting(false);
   }, [isOpen]);
 
-  // Handle native HTML5 dialog element opening/closing via standard API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!isOpen || !token) return;
+      try {
+        const res = await fetch("/api/auth/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setUsers(data.users || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
+    fetchUsers();
+  }, [isOpen, token]);
+
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -50,37 +73,38 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  // Click outside backdrop fallback close listener for browsers without closedby="any" support (e.g. Safari)
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !description || !dueDate) {
+      setFormError("Please fill in all required fields.");
+      return;
+    }
+    setSubmitting(true);
+    setFormError(null);
 
-    const handleBackdropClick = (event: MouseEvent) => {
-      if (event.target !== dialog) return;
+    const success = await createTask({
+      title,
+      description,
+      priority,
+      status,
+      due_date: dueDate,
+      assignees: assignedTo as any,
+    });
 
-      const rect = dialog.getBoundingClientRect();
-      const isInside =
-        rect.top <= event.clientY &&
-        event.clientY <= rect.top + rect.height &&
-        rect.left <= event.clientX &&
-        event.clientX <= rect.left + rect.width;
-
-      if (!isInside) {
-        onClose();
-      }
-    };
-
-    dialog.addEventListener("click", handleBackdropClick);
-    return () => {
-      dialog.removeEventListener("click", handleBackdropClick);
-    };
-  }, [onClose]);
+    if (success) {
+      onClose();
+    } else {
+      setFormError("Failed to create task. Please try again.");
+      setSubmitting(false);
+    }
+  };
 
   return (
     <dialog
-      className="m-auto border-0 rounded-lg p-5 w-[calc(100%-10px)] md:w-[42rem]"
+      className="m-auto border-0 rounded-lg p-5 w-[calc(100%-10px)] md:w-[42rem] overflow-visible"
       ref={dialogRef}
       onClose={onClose}
+      onCancel={(e) => e.preventDefault()}
       aria-labelledby="modal-title"
     >
       <div className="flex items-center justify-between mb-5">
@@ -97,10 +121,23 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
       </div>
 
       {formError && (
-        <div className="fade-in text-red-500 text-sm">{formError}</div>
+        <div className="fade-in text-red-500 text-sm mb-4">{formError}</div>
       )}
 
-      <form className="flex flex-col gap-2">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
+          <label htmlFor="task-priority">Priority</label>
+          <Select
+            options={[
+              { value: "low", label: "Low" },
+              { value: "medium", label: "Medium" },
+              { value: "high", label: "High" },
+            ]}
+            value={priority}
+            onChange={(val) => setPriority(val as Task["priority"])}
+          />
+        </div>
+
         <div className="flex flex-col gap-1 mb-2">
           <label htmlFor="task-title">Title *</label>
           <input
@@ -127,39 +164,22 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
           />
         </div>
 
-        <div className="flex flex-row gap-1 mb-2">
-          <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
-            <label htmlFor="task-priority">Priority</label>
-            <select
-              id="task-priority"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as Task["priority"])}
-              className="border-border border-1 bg-input border w-full rounded-md px-3 py-2"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-
+        <div className="flex flex-row gap-2 mb-2">
           <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
             <label htmlFor="task-status">Status</label>
-            <select
-              id="task-status"
+            <Select
+              options={[
+                { value: "open", label: "Open" },
+                { value: "in_progress", label: "In Progress" },
+                { value: "done", label: "Done" },
+              ]}
               value={status}
-              onChange={(e) => setStatus(e.target.value as Task["status"])}
-              className="border-border border-1 bg-input border w-full rounded-md px-3 py-2"
-            >
-              <option value="to_do">To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="in_review">In Review</option>
-              <option value="testing">Testing</option>
-              <option value="done">Done</option>
-            </select>
+              onChange={(val) => setStatus(val as Task["status"])}
+            />
           </div>
         </div>
 
-        <div className="flex gap-1 mb-2">
+        <div className="flex gap-2 mb-2">
           <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
             <label htmlFor="task-due">Due Date *</label>
             <input
@@ -168,26 +188,22 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
               required
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="border-border border-1 bg-input border w-full rounded-md px-3 py-2"
+              className="border-border border-1 bg-input border w-full rounded-md px-3 py-[9px]"
             />
           </div>
 
           <div className="flex flex-col gap-1 mb-2" style={{ flex: 1 }}>
-            <label htmlFor="task-assignee">Assignee</label>
-            <select
+            <label htmlFor="task-assignee">Assignees</label>
+            <Select
               multiple
-              id="task-assignee"
+              options={users.map((u) => ({
+                value: u.id!,
+                label: cleanCapitalize(u.username),
+              }))}
               value={assignedTo}
-              onChange={(e) => {
-                console.log(e);
-              }}
-              className="border-border border-1 bg-input border w-full rounded-md px-3 py-2"
-            >
-              <option value={-1}>Unassigned</option>
-              <option value={1}>Jane</option>
-              <option value={2}>John</option>
-              <option value={3}>Doe</option>
-            </select>
+              onChange={(val) => setAssignedTo(val)}
+              placeholder="Select assignees..."
+            />
           </div>
         </div>
 

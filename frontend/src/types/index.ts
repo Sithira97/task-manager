@@ -1,9 +1,12 @@
+export type TaskStatus = "open" | "in_progress" | "done";
+export type TaskPriority = "low" | "medium" | "high";
+
 export interface Task {
   id: number;
   title: string;
   description: string;
-  priority: "low" | "medium" | "high";
-  status: "open" | "in_progress" | "done";
+  priority: TaskPriority;
+  status: TaskStatus;
   due_date: string;
   created_by: User | null;
   assignees?: User[] | null;
@@ -86,5 +89,6 @@ export interface TaskContextType {
     taskId: number,
     updates: Partial<Task>,
   ) => Promise<boolean>;
+  updateTaskStatus: (taskId: number, status: TaskStatus) => Promise<boolean>;
   deleteTask: (taskId: number) => Promise<boolean>;
 }

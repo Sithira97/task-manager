@@ -63,6 +63,29 @@ describe("Task API Tests", () => {
     );
   });
 
+  after(async () => {
+    if (task1Id) {
+      await pool.execute("DELETE FROM assignees WHERE task_id = ?", [task1Id]);
+    }
+    await pool.execute("DELETE FROM assignees WHERE user_id IN (?, ?, ?)", [
+      adminId,
+      useraId,
+      userbId,
+    ]);
+
+    await pool.execute("DELETE FROM tasks WHERE created_by IN (?, ?, ?)", [
+      adminId,
+      useraId,
+      userbId,
+    ]);
+
+    await pool.execute("DELETE FROM users WHERE id IN (?, ?, ?)", [
+      adminId,
+      useraId,
+      userbId,
+    ]);
+  });
+
   describe("POST /api/tasks (Create Task)", () => {
     it("should create a new task successfully with creator as User A", async () => {
       const response = await request(app)
@@ -284,27 +307,6 @@ describe("Task API Tests", () => {
   });
 
   after(async () => {
-    if (task1Id) {
-      await pool.execute("DELETE FROM assignees WHERE task_id = ?", [task1Id]);
-    }
-    await pool.execute("DELETE FROM assignees WHERE user_id IN (?, ?, ?)", [
-      adminId,
-      useraId,
-      userbId,
-    ]);
-
-    await pool.execute("DELETE FROM tasks WHERE created_by IN (?, ?, ?)", [
-      adminId,
-      useraId,
-      userbId,
-    ]);
-
-    await pool.execute("DELETE FROM users WHERE id IN (?, ?, ?)", [
-      adminId,
-      useraId,
-      userbId,
-    ]);
-
     await pool.end();
   });
 });

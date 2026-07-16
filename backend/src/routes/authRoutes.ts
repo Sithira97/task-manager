@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/register", register);
 router.post("/login", login);
-router.get("/users", authenticateToken, requireAdmin, getUsers);
+router.get("/users", authenticateToken, getUsers);
 router.get("/users/:id", authenticateToken, requireAdmin, getUserById);
 
 export default router;

@@ -51,11 +51,11 @@ export const createTask = async (req: AuthRequest, res: Response) => {
   try {
     let assignedTo: number[] = [];
     if (assignees && Array.isArray(assignees) && assignees.length > 0) {
-      const [existingUsers] = await pool.execute<RowDataPacket[]>(
+      const [existingUsers] = await pool.query<RowDataPacket[]>(
         "SELECT id FROM users WHERE id IN (?)",
         [assignees],
       );
-      if (existingUsers.length === 0) {
+      if (existingUsers.length !== assignees.length) {
         return res
           .status(404)
           .json({ error: "One or more assignees do not exist" });
@@ -117,46 +117,72 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const isAdmin = req.user!.role === "admin";
   try {
-    let query = fetchTasks(isAdmin);
+    let query = fetchTasks(isAdmin, userId);
     let countQuery = `SELECT COUNT(DISTINCT t.id) as total FROM tasks t`;
     if (!isAdmin) {
       countQuery += ` LEFT JOIN assignees a ON t.id = a.task_id`;
     }
 
-    const conditions: string[] = [];
+    const whereConditions: string[] = [];
+    const countConditions: string[] = [];
     const params: any[] = [];
+    const countParams: any[] = [];
 
     if (!isAdmin) {
-      conditions.push(
+      // For the count query, we can filter in WHERE since we don't aggregate assignees
+      countConditions.push(
         "(t.created_by = ? OR a.user_id = ?) AND t.deleted_at IS NULL",
       );
-      params.push(userId, userId);
+      countParams.push(userId, userId);
     }
 
     if (search) {
-      conditions.push("(t.title LIKE ? OR t.description LIKE ?)");
+      whereConditions.push("(t.title LIKE ? OR t.description LIKE ?)");
+      countConditions.push("(t.title LIKE ? OR t.description LIKE ?)");
       const searchPattern = `%${search}%`;
       params.push(searchPattern, searchPattern);
+      countParams.push(searchPattern, searchPattern);
     }
 
     if (status) {
-      conditions.push("t.status = ?");
+      whereConditions.push("t.status = ?");
+      countConditions.push("t.status = ?");
       params.push(status);
+      countParams.push(status);
     }
 
     if (priority) {
-      conditions.push("t.priority = ?");
+      whereConditions.push("t.priority = ?");
+      countConditions.push("t.priority = ?");
       params.push(priority);
+      countParams.push(priority);
     }
 
-    if (conditions.length > 0) {
-      query += " WHERE " + conditions.join(" AND ");
-      countQuery += " WHERE " + conditions.join(" AND ");
+    if (whereConditions.length > 0) {
+      // If fetchTasks already added a WHERE (for non-admin deleted_at check), use AND
+      if (!isAdmin) {
+        query += " AND " + whereConditions.join(" AND ");
+      } else {
+        query += " WHERE " + whereConditions.join(" AND ");
+      }
+    }
+
+    if (countConditions.length > 0) {
+      countQuery += " WHERE " + countConditions.join(" AND ");
+    }
+
+    // For non-admin users, use HAVING to check access AFTER grouping
+    // This preserves all assignee rows for JSON_ARRAYAGG
+    const havingParams: any[] = [];
+    let havingClause = "";
+    if (!isAdmin) {
+      havingClause = ` HAVING (MAX(t.created_by = ?) = 1 OR MAX(a.user_id = ?) = 1)`;
+      havingParams.push(userId, userId);
     }
 
     const [countResult] = await pool.execute<RowDataPacket[]>(
       countQuery,
-      params,
+      countParams,
     );
     const totalTasks = countResult[0].total;
 
@@ -168,8 +194,8 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: "Invalid page or limit" });
     }
 
-    query += " GROUP BY t.id ORDER BY t.created_at DESC LIMIT ? OFFSET ?";
-    const queryParams = [...params, limitNum, offsetNum];
+    query += ` GROUP BY t.id${havingClause} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`;
+    const queryParams = [...params, ...havingParams, limitNum, offsetNum];
 
     const [tasks] = await pool.query<RowDataPacket[]>(query, queryParams);
     const totalPages = Math.ceil(totalTasks / limitNum);
@@ -278,11 +304,11 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
       : [];
     if (assignees !== undefined && canEditAll) {
       if (assignees && Array.isArray(assignees) && assignees.length > 0) {
-        const [existingUsers] = await pool.execute<RowDataPacket[]>(
+        const [existingUsers] = await pool.query<RowDataPacket[]>(
           "SELECT id FROM users WHERE id IN (?)",
           [assignees],
         );
-        if (existingUsers.length === 0) {
+        if (existingUsers.length !== assignees.length) {
           return res
             .status(404)
             .json({ error: "One or more assignees do not exist" });

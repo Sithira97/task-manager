@@ -4,33 +4,13 @@ import {
   ClipboardList,
   AlertCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { Task } from "../types";
 import { cleanCapitalize } from "../utils/words";
 import { useAuth } from "../context/AuthContext";
+import { useTasks } from "../context/TaskContext";
 
 const Dashboard: React.FC = () => {
-  const { user, token } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
-
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch("/api/tasks", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (data && Array.isArray(data.tasks)) {
-        setTasks(data.tasks);
-      }
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
-  };
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+  const { user } = useAuth();
+  const { tasks } = useTasks();
 
   return (
     <main className="flex-1 flex flex-col gap-3 overflow-y-auto mb-16 sm:mb-0 p-5">

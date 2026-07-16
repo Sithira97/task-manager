@@ -6,11 +6,23 @@ export interface Task {
   status: "open" | "in_progress" | "done";
   due_date: string;
   created_by: User | null;
-  assignees?: [] | null;
+  assignees?: User[] | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
 }
+export interface Team {
+  id: number;
+  title: string;
+  description?: string;
+  team_lead: User;
+  team_members?: User[] | null;
+  created_by: User | null;
+  created_at: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+}
+
 export interface User {
   id?: number;
   username: string;
@@ -45,4 +57,34 @@ export type Route = "dashboard" | "tasks" | "schedule" | "teams";
 export interface RouterContextType {
   currentView: Route;
   setCurrentView: (view: Route) => void;
+}
+
+export interface PaginationInfo {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface TaskContextType {
+  tasks: Task[];
+  teams: Team[];
+  pagination: PaginationInfo;
+  loading: boolean;
+  error: string | null;
+  search: string;
+  statusFilter: string;
+  priorityFilter: string;
+  setSearch: (search: string) => void;
+  setStatusFilter: (status: string) => void;
+  setPriorityFilter: (priority: string) => void;
+  setPage: (page: number) => void;
+  fetchTasks: () => Promise<void>;
+  fetchTeams: () => Promise<void>;
+  createTask: (taskData: Partial<Task>) => Promise<boolean>;
+  updateTaskOptimistic: (
+    taskId: number,
+    updates: Partial<Task>,
+  ) => Promise<boolean>;
+  deleteTask: (taskId: number) => Promise<boolean>;
 }

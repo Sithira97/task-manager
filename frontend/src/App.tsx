@@ -8,12 +8,15 @@ import Layout from "./components/Layout";
 import { useState } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { RouterProvider, useRoute } from "./context/RouterContext";
+import { TaskProvider } from "./context/TaskContext";
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <RouterProvider>
-        <MainApp />
+        <TaskProvider>
+          <MainApp />
+        </TaskProvider>
       </RouterProvider>
     </AuthProvider>
   );

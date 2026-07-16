@@ -1,30 +1,8 @@
-import React, { useEffect, useState } from "react";
 import Calendar from "../components/Calendar";
-import type { Task } from "../types";
-import { useAuth } from "../context/AuthContext";
+import { useTasks } from "../context/TaskContext";
 
 const Schedule: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const { token } = useAuth();
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch("/api/tasks", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (data && Array.isArray(data.tasks)) {
-        setTasks(data.tasks);
-      }
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+  const { tasks } = useTasks();
 
   return (
     <main className="flex-1 flex flex-col overflow-y-auto mb-16 sm:mb-0 p-5">

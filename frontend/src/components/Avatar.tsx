@@ -66,7 +66,9 @@ export const AvatarPopup: React.FC<AvatarProps> = ({ user, size = "md" }) => {
   return (
     <div
       ref={containerRef}
-      className="relative inline-block select-none hover:z-10 transition-all"
+      className={`relative inline-block select-none transition-all ${
+        showPopup ? "z-100" : "hover:z-150"
+      }`}
     >
       <Avatar
         user={user}
@@ -75,7 +77,7 @@ export const AvatarPopup: React.FC<AvatarProps> = ({ user, size = "md" }) => {
       />
 
       {showPopup && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-card text-card-foreground border border-border rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-card text-card-foreground border border-border rounded-xl shadow-xl z-200 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="rounded-t-xl relative w-full opacity-80 h-[48px] bg-secondary" />
           <div className="px-4 pb-4 pt-0 relative flex flex-col items-center">
             <div className="w-16 h-16 bg-secondary text-secondary-foreground rounded-full border-4 border-card flex items-center justify-center font-bold text-xl -mt-8 shadow-md">

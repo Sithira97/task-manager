@@ -14,10 +14,12 @@ import { useState } from "react";
 import TaskModal from "./TaskModal";
 import { useAuth } from "../context/AuthContext";
 import { useRoute } from "../context/RouterContext";
+import { useTasks } from "../context/TaskContext";
 
 const Navbar: React.FC = () => {
   const { logout, user } = useAuth();
   const { currentView, setCurrentView } = useRoute();
+  const { search, setSearch } = useTasks();
   const [isModalOpen, setModalOpen] = useState(false);
   return (
     <>
@@ -30,6 +32,8 @@ const Navbar: React.FC = () => {
           <input
             type="text"
             placeholder="Search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full md:w-80 pl-10 border-border border-1 rounded-lg px-4 py-2 bg-input "
           />
         </div>

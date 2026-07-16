@@ -15,10 +15,12 @@ import { capitalize, cleanCapitalize } from "../utils/words";
 import TaskModal from "./TaskModal";
 import { useAuth } from "../context/AuthContext";
 import { useRoute } from "../context/RouterContext";
+import { useTasks } from "../context/TaskContext";
 
 const MobileNav: React.FC = () => {
   const { logout, user } = useAuth();
   const { currentView, setCurrentView } = useRoute();
+  const { search, setSearch } = useTasks();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -49,6 +51,8 @@ const MobileNav: React.FC = () => {
           <input
             type="text"
             placeholder="Search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full md:w-80 pl-10 border-border border-1 rounded-lg px-4 py-2 bg-input "
           />
         </div>

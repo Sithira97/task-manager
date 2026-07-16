@@ -84,7 +84,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       </div>
 
       <div className="flex items-center justify-between gap-4 mt-3">
-        <label htmlFor={`status-select-${task.id}`} className="text-sm font-medium shrink-0">
+        <label
+          htmlFor={`status-select-${task.id}`}
+          className="text-sm font-medium shrink-0"
+        >
           Status
         </label>
         <div className="flex-1 min-w-0">

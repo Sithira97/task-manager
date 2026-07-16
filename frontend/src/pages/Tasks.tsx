@@ -5,12 +5,12 @@ const Tasks: React.FC = () => {
   const { tasks } = useTasks();
 
   return (
-    <main className="flex-1 flex flex-col gap-3 overflow-y-auto mb-16 sm:mb-0 py-5 lg:px-5">
+    <main className="flex-1 flex flex-col gap-3 overflow-y-auto mb-16 sm:mb-0 pt-5 pb-36 lg:px-5">
       <div className="max-w-7xl lg:mx-auto">
         <div className="grid lg:grid-cols-3 gap-3 lg:gap-2">
           <div className="grid lg:block">
             <p className="font-semibold px-5 lg:text-center">Open Tasks</p>
-            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto py-2">
+            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-visible py-2">
               {tasks
                 .filter((task) => task.status === "open")
                 .map((value) => (
@@ -22,7 +22,7 @@ const Tasks: React.FC = () => {
             <p className="font-semibold px-5 lg:text-center">
               In Progress Tasks
             </p>
-            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto p-2">
+            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-visible p-2">
               {tasks
                 .filter((task) => task.status === "in_progress")
                 .map((value) => (
@@ -32,7 +32,7 @@ const Tasks: React.FC = () => {
           </div>
           <div className="grid lg:block">
             <p className="font-semibold px-5 lg:text-center">Done Tasks</p>
-            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto p-2">
+            <div className="flex px-5 lg:px-2 lg:flex-col gap-3 overflow-x-auto lg:overflow-visible p-2">
               {tasks
                 .filter((task) => task.status === "done")
                 .map((value) => (

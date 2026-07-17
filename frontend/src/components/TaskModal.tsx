@@ -35,10 +35,13 @@ import {
 } from "./ui/select";
 import { Field, FieldLabel } from "./ui/field";
 import { DatePickerInput } from "./ui/date-picker";
+import { formatDate } from "date-fns";
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isEdit?: boolean;
+  task?: Task;
 }
 
 const statusValues = [
@@ -53,8 +56,13 @@ const priorityValues = [
   { value: "high", label: "High" },
 ];
 
-const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
-  const { createTask } = useTasks();
+const TaskModal: React.FC<TaskModalProps> = ({
+  isOpen,
+  onClose,
+  isEdit = false,
+  task,
+}) => {
+  const { createTask, updateTaskOptimistic } = useTasks();
   const { token } = useAuth();
   const anchor = useComboboxAnchor();
 
@@ -71,17 +79,25 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isEdit && task) {
+      setTitle(task.title);
+      setDescription(task.description);
+      setPriority(task.priority);
+      setStatus(task.status);
+      setDueDate(formatDate(task.due_date, "yyyy-MM-dd"));
+
+      setAssignedTo(task.assignees.map((user: any) => user.id || user.user_id));
+    } else {
+      // Clear fields for creation mode
       setTitle("");
       setDescription("");
       setPriority("medium");
       setStatus("open");
       setDueDate("");
       setAssignedTo([]);
-      setFormError(null);
-      setSubmitting(false);
     }
-  }, [isOpen]);
+    setFormError(null);
+  }, [task, isOpen]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -103,27 +119,32 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!title || !description || !dueDate) {
       setFormError("Please fill in all required fields.");
       return;
     }
     setSubmitting(true);
-    setFormError(null);
-
-    const success = await createTask({
+    const taskPayload = {
       title,
       description,
       priority,
       status,
-      due_date: dueDate,
+      due_date: formatDate(dueDate, "yyyy-MM-dd"),
       assignees: assignedTo as any,
-    });
+    };
 
+    let success = false;
+    if (isEdit) {
+      success = await updateTaskOptimistic(task.id, taskPayload);
+    } else {
+      success = await createTask(taskPayload);
+    }
+    setSubmitting(false);
     if (success) {
       onClose();
     } else {
       setFormError("Failed to create task. Please try again.");
-      setSubmitting(false);
     }
   };
 
@@ -227,13 +248,19 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
 
           <Field>
             <FieldLabel htmlFor="task-assignee">Assignees</FieldLabel>
-            <Combobox multiple autoHighlight items={users}>
+            <Combobox
+              multiple
+              autoHighlight
+              items={users}
+              value={assignedTo}
+              onValueChange={setAssignedTo}
+            >
               <ComboboxChips ref={anchor} className="w-full">
                 <ComboboxValue>
                   {(values) => (
                     <>
                       {values.map((value: number) => (
-                        <ComboboxChip key={value}>
+                        <ComboboxChip key={value + Math.random()}>
                           {cleanCapitalize(
                             users.find((user) => user.id === value)?.username,
                           )}
@@ -247,8 +274,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
               <ComboboxContent anchor={anchor}>
                 <ComboboxEmpty>No items found.</ComboboxEmpty>
                 <ComboboxList>
-                  {(item: User, index: number) => (
-                    <ComboboxItem key={index} value={item.id}>
+                  {(item: User) => (
+                    <ComboboxItem key={item.id + Math.random()} value={item.id}>
                       {cleanCapitalize(item.username)}
                     </ComboboxItem>
                   )}

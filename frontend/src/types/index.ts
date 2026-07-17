@@ -28,6 +28,7 @@ export interface Team {
 
 export interface User {
   id?: number;
+  user_id?: number;
   username: string;
   email?: string;
   role?: "admin" | "user";
@@ -91,4 +92,5 @@ export interface TaskContextType {
   ) => Promise<boolean>;
   updateTaskStatus: (taskId: number, status: TaskStatus) => Promise<boolean>;
   deleteTask: (taskId: number) => Promise<boolean>;
+  forceDeleteTask: (taskId: number) => Promise<boolean>;
 }

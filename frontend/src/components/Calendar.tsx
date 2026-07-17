@@ -7,6 +7,7 @@ import {
 import type { Task } from "../types";
 import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "../lib/calender";
 import { getPriorityClasses, getStatusIcon } from "../lib/enums";
+import TaskCard from "./TaskCard";
 
 const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -91,8 +92,8 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
   const selectedTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
   return (
-    <div className="flex flex-col 2xl:flex-row gap-2">
-      <div className="flex-1 overflow-hidden">
+    <main className="flex flex-col 2xl:flex-row gap-2">
+      <div className="flex-1">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-3 sm:mb-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-primary/10 text-primary rounded-xl">
@@ -233,9 +234,9 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
         </div>
       </div>
 
-      <div className="w-full 2xl:w-96 flex flex-col gap-4">
+      <div className="w-full 2xl:w-96 flex flex-col gap-4 h-full">
         {selectedDate && (
-          <div className="2xl:h-full bg-card border border-border rounded-2xl shadow p-5 flex flex-col gap-4">
+          <div className="2xl:h-full bg-card border border-border rounded-2xl shadow p-4 flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
                 <h3 className="font-black text-lg">
@@ -251,7 +252,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
               </div>
             </div>
 
-            <div className="2xl:flex-1 2xl:flex flex-col gap-3 overflow-y-auto pr-1">
+            <div className="2xl:flex-1 flex lg:grid 2xl:flex grid-cols-2 flex-col h-full gap-3 overflow-y-auto p-1">
               {selectedTasks.length === 0 ? (
                 <div className="2xl:flex-1 flex items-center justify-center text-center py-8 text-muted-foreground text-sm flex-col items-center gap-2">
                   <CalendarIcon
@@ -262,31 +263,8 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
                 </div>
               ) : (
                 selectedTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="bg-muted/40 hover:bg-muted/60 border border-border p-3.5 rounded-xl flex flex-col gap-2 transition-colors duration-200"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-bold text-sm text-foreground line-clamp-1 flex-1">
-                        {task.title}
-                      </h4>
-                    </div>
-
-                    {task.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                        {task.description}
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-between gap-2 mt-1 border-t border-border/50 pt-2">
-                      <span
-                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${getPriorityClasses(
-                          task.priority,
-                        )}`}
-                      >
-                        {task.priority}
-                      </span>
-                    </div>
+                  <div key={task.id}>
+                    <TaskCard task={task} />
                   </div>
                 ))
               )}
@@ -294,7 +272,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

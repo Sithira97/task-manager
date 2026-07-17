@@ -299,9 +299,7 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
     }
 
     const canEditAll = isAdmin || isCreator;
-    let assignedTo: number[] = task.assignees
-      ? task.assignees.map((assignee: any) => assignee.user_id)
-      : [];
+    let assignedTo: number[] = [];
     if (assignees !== undefined && canEditAll) {
       if (assignees && Array.isArray(assignees) && assignees.length > 0) {
         const [existingUsers] = await pool.query<RowDataPacket[]>(

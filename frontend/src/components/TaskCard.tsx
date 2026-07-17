@@ -1,5 +1,4 @@
-import { type ComponentProps } from "react";
-import { Calendar, Crown } from "lucide-react";
+import { Calendar, Crown, Edit, Trash } from "lucide-react";
 import type { Task, User } from "../types";
 import { useTasks } from "../context/TaskContext";
 import {
@@ -8,6 +7,8 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
+  CardHeader,
+  CardAction,
 } from "@/components/ui/card";
 import {
   Avatar,
@@ -23,18 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { KanbanItem } from "./reui/kanban";
 import { Badge } from "./reui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cleanCapitalize, getInitials } from "@/lib/words";
+import { Button } from "./ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
 
-interface TaskCardProps extends Omit<
-  ComponentProps<typeof KanbanItem>,
-  "value" | "children"
-> {
+interface TaskCardProps {
   task: Task;
-  asHandle?: boolean;
-  isOverlay?: boolean;
+  setDialogDelete?: React.Dispatch<
+    React.SetStateAction<{ open: boolean; taskId: number }>
+  >;
+  setModalEdit?: React.Dispatch<
+    React.SetStateAction<{ open: boolean; taskId: number }>
+  >;
 }
 const statusValues = [
   { value: "open", label: "Open" },
@@ -53,10 +56,11 @@ const formatDate = (dateString: string) => {
 
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
-  asHandle,
-  isOverlay,
-  ...props
+  setDialogDelete,
+  setModalEdit,
 }) => {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
   const { updateTaskStatus } = useTasks();
 
   const handleStatusChange = async (newStatus: Task["status"]) => {
@@ -69,30 +73,32 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const overflowAssignees =
     assigneeList && assigneeList.length > 3 && assigneeList.slice(3);
 
-  const cardContent = (
+  return (
     <Card>
-      <CardContent className="flex flex-col gap-2.5 w-64 max-w lg:w-auto">
-        <div className="flex items-center justify-between gap-2">
+      <CardContent className="flex flex-col gap-2.5 min-w-64 max-w lg:w-auto">
+        <CardHeader className="px-0">
           <CardTitle className="line-clamp-1 text-sm font-medium">
             {task.title}
           </CardTitle>
-          <Badge
-            variant={
-              task.priority === "high"
-                ? "destructive-light"
-                : task.priority === "medium"
-                  ? "warning-light"
-                  : "success-light"
-            }
-            className="pointer-events-none h-5 shrink-0 rounded-sm px-1.5 text-xs capitalize"
-          >
-            {task.priority}
-          </Badge>
-        </div>
+          <CardDescription className="text-muted-foreground line-clamp-1 lg:line-clamp-2 text-sm">
+            {task.description}
+          </CardDescription>
+          <CardAction>
+            <Badge
+              variant={
+                task.priority === "high"
+                  ? "destructive-light"
+                  : task.priority === "medium"
+                    ? "warning-light"
+                    : "success-light"
+              }
+              className="pointer-events-none h-5 shrink-0 rounded-sm px-1.5 text-xs capitalize"
+            >
+              {task.priority}
+            </Badge>
+          </CardAction>
+        </CardHeader>
 
-        <CardDescription className="text-muted-foreground line-clamp-1 lg:line-clamp-2 text-sm">
-          {task.description}
-        </CardDescription>
         <div className="flex flex-col gap-2 pt-3 border-t border-border mt-auto">
           <div className="flex justify-between items-end text-sm text-muted-foreground">
             <AvatarGroup className="flex justify-end items-end">
@@ -156,41 +162,67 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       </CardContent>
 
-      <CardFooter className="flex gap-x-2">
-        <label
-          htmlFor={`status-select-${task.id}`}
-          className="text-sm font-medium shrink-0"
-        >
-          Status
-        </label>
-        <div className="flex-1 min-w-0">
-          <Select
-            items={statusValues}
-            value={task.status}
-            onValueChange={handleStatusChange}
+      <CardFooter className="block xl:flex gap-x-2 w-full space-y-1 items-center">
+        <div className="flex flex-1 items-center gap-x-2">
+          <label
+            htmlFor={`status-select-${task.id}`}
+            className="hidden 2xl:block text-sm font-medium shrink-0"
           >
-            <SelectTrigger className="w-full text-sm">
-              <SelectValue placeholder="Theme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {statusValues.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            Status
+          </label>
+          <div className="flex-1 w-full min-w-0">
+            <Select
+              items={statusValues}
+              value={task.status}
+              onValueChange={handleStatusChange}
+            >
+              <SelectTrigger className="w-full text-sm">
+                <SelectValue placeholder="Theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {statusValues.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex gap-x-1 flex-1 xl:flex-0">
+          {setModalEdit && (
+            <Button
+              onClick={() => setModalEdit({ open: true, taskId: task.id })}
+              variant="outline"
+              className="flex-1 xl:flex-0 border-primary text-primary hover:bg-primary hover:text-primary-foreground dark:hover:bg-primary hover:border-primary dark:hover:text-primary-foreground"
+            >
+              <Edit />
+              <span
+                className={`hidden xs:block ${!isCollapsed && "lg:hidden"} xl:hidden text-sm`}
+              >
+                Edit
+              </span>
+            </Button>
+          )}
+          {setDialogDelete && (
+            <Button
+              onClick={() => setDialogDelete({ open: true, taskId: task.id })}
+              variant="outline"
+              className="flex-1 xl:flex-0 border-destructive text-destructive hover:bg-destructive/40 hover:text-destructive-foreground dark:hover:bg-destructive/50 hover:border-destructive-foreground dark:hover:text-destructive-foreground"
+            >
+              <Trash />
+              <span
+                className={`hidden xs:block ${!isCollapsed && "lg:hidden"} xl:hidden text-sm`}
+              >
+                Delete
+              </span>
+            </Button>
+          )}
         </div>
       </CardFooter>
     </Card>
-  );
-
-  return (
-    <KanbanItem value={task.id.toString()} {...props}>
-      {cardContent}
-    </KanbanItem>
   );
 };
 

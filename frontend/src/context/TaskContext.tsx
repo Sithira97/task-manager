@@ -269,6 +269,29 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const forceDeleteTask = async (taskId: number): Promise<boolean> => {
+    if (!token) return false;
+    setError(null);
+    try {
+      const response = await fetch(`/api/tasks/${taskId}/force`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete task");
+      }
+
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      return true;
+    } catch (err: any) {
+      setError(err.message || "Error deleting task");
+      return false;
+    }
+  };
+
   return (
     <TaskContext.Provider
       value={{
@@ -290,6 +313,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         updateTaskOptimistic,
         updateTaskStatus,
         deleteTask,
+        forceDeleteTask,
       }}
     >
       {children}

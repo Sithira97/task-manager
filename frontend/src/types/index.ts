@@ -74,16 +74,16 @@ export interface PaginationInfo {
 export interface TaskContextType {
   tasks: Task[];
   teams: Team[];
-  pagination: PaginationInfo;
   loading: boolean;
   error: string | null;
   search: string;
   statusFilter: string;
   priorityFilter: string;
+  timeframeFilter: string;
   setSearch: (search: string) => void;
   setStatusFilter: (status: string) => void;
   setPriorityFilter: (priority: string) => void;
-  setPage: (page: number) => void;
+  setTimeframeFilter: (timeframe: string) => void;
   fetchTasks: () => Promise<void>;
   fetchTeams: () => Promise<void>;
   createTask: (taskData: Partial<Task>) => Promise<boolean>;

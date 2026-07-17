@@ -8,6 +8,7 @@ import {
   updateTask,
   updateTaskPriority,
   updateTaskStatus,
+  getDashboardStats,
 } from "../controllers/taskController.js";
 import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
@@ -17,6 +18,7 @@ router.use(authenticateToken);
 
 router.post("/", createTask);
 router.get("/", getTasks);
+router.get("/dashboard/stats", requireAdmin, getDashboardStats);
 router.get("/:id", getTaskById);
 router.put("/:id", updateTask);
 router.patch("/:id/status", updateTaskStatus);

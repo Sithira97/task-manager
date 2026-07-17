@@ -22,6 +22,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
 import { Badge } from "@/components/reui/badge";
 import { useAuth } from "@/context/AuthContext";
@@ -33,6 +40,19 @@ const COLUMN_TITLES: Record<string, string> = {
   in_progress: "In Progress",
   done: "Done",
 };
+
+const PRIORITY_FILTER = [
+  { label: "All Priorities", value: "all" },
+  { label: "High", value: "high" },
+  { label: "Medium", value: "medium" },
+  { label: "Low", value: "low" },
+];
+
+const TIMEFRAME_FILTER = [
+  { label: "All Time", value: "all" },
+  { label: "Week", value: "week" },
+  { label: "Month", value: "month" },
+];
 
 const STATUS_KEYS = Object.keys(COLUMN_TITLES) as Task["status"][];
 
@@ -120,7 +140,16 @@ function buildColumns(tasks: Task[]): Record<string, Task[]> {
 }
 
 const Tasks: React.FC = () => {
-  const { tasks, updateTaskStatus, deleteTask, forceDeleteTask } = useTasks();
+  const {
+    tasks,
+    updateTaskStatus,
+    deleteTask,
+    forceDeleteTask,
+    timeframeFilter,
+    setTimeframeFilter,
+    priorityFilter,
+    setPriorityFilter,
+  } = useTasks();
   const { user } = useAuth();
   const [dialogDelete, setDialogDelete] = useState<{
     open: boolean;
@@ -135,10 +164,12 @@ const Tasks: React.FC = () => {
       taskId: 0,
     },
   );
-  const [modalView, setModalView] = useState<{ open: boolean; taskId: number }>({
-    open: false,
-    taskId: 0,
-  });
+  const [modalView, setModalView] = useState<{ open: boolean; taskId: number }>(
+    {
+      open: false,
+      taskId: 0,
+    },
+  );
 
   const [columns, setColumns] = useState<Record<string, Task[]>>(() =>
     buildColumns(tasks),
@@ -160,6 +191,46 @@ const Tasks: React.FC = () => {
 
   return (
     <main className="flex-1 max-w-7xl mx-auto flex flex-col gap-3 w-full mb-16 sm:mb-0 pt-5 lg:px-5 over">
+      <div className="flex flex-col sm:flex-row gap-4 px-4 sm:items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
+        <div className="flex items-center gap-3">
+          <Select
+            items={PRIORITY_FILTER}
+            value={priorityFilter || "all"}
+            onValueChange={(val) => setPriorityFilter(val === "all" ? "" : val)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              {PRIORITY_FILTER.map((priority) => (
+                <SelectItem key={priority.value} value={priority.value}>
+                  {priority.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            items={TIMEFRAME_FILTER}
+            value={timeframeFilter || "all"}
+            onValueChange={(val) =>
+              setTimeframeFilter(val === "all" ? "" : val)
+            }
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Timeframe" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIMEFRAME_FILTER.map((timeframe) => (
+                <SelectItem key={timeframe.value} value={timeframe.value}>
+                  {timeframe.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <Kanban
         value={columns}
         onValueChange={setColumns}

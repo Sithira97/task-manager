@@ -113,7 +113,7 @@ export const createTask = async (req: AuthRequest, res: Response) => {
 
 // retrieve all tasks ---------------------------------------
 export const getTasks = async (req: AuthRequest, res: Response) => {
-  const { page = "1", limit = "20", search, status, priority } = req.query;
+  const { page = "1", limit = "1000", search, status, priority, timeframe } = req.query;
   const userId = req.user!.id;
   const isAdmin = req.user!.role === "admin";
   try {
@@ -156,6 +156,16 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
       countConditions.push("t.priority = ?");
       params.push(priority);
       countParams.push(priority);
+    }
+
+    if (timeframe) {
+      if (timeframe === "week") {
+        whereConditions.push("t.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+        countConditions.push("t.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+      } else if (timeframe === "month") {
+        whereConditions.push("t.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+        countConditions.push("t.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+      }
     }
 
     if (whereConditions.length > 0) {
@@ -542,5 +552,47 @@ export const forceDeleteTask = async (req: AuthRequest, res: Response) => {
     return res
       .status(500)
       .json({ error: "Internal server error occurred force deleting task" });
+  }
+};
+
+// get dashboard stats for admins --------------------------------------
+export const getDashboardStats = async (req: AuthRequest, res: Response) => {
+  const isAdmin = req.user!.role === "admin";
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  try {
+    const [[totalTasksResult]] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL`
+    );
+    const [[statusStats]] = await pool.query<RowDataPacket[]>(
+      `SELECT 
+        SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open,
+        SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
+        SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as done
+       FROM tasks WHERE deleted_at IS NULL`
+    );
+    const [[overdueStats]] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) as overdue FROM tasks WHERE due_date < NOW() AND status != 'done' AND deleted_at IS NULL`
+    );
+
+    return res.json({
+      message: "Dashboard stats fetched successfully",
+      stats: {
+        total: totalTasksResult.count || 0,
+        byStatus: {
+          open: statusStats.open || 0,
+          in_progress: statusStats.in_progress || 0,
+          done: statusStats.done || 0,
+        },
+        overdue: overdueStats.overdue || 0,
+      }
+    });
+  } catch (error: any) {
+    console.error("Get Dashboard Stats Error:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal server error occurred fetching dashboard stats" });
   }
 };

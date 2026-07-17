@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext.jsx";
 import type {
-  PaginationInfo,
   Task,
   TaskContextType,
   TaskStatus,
@@ -28,14 +27,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   const [search, setSearchState] = useState<string>("");
   const [statusFilter, setStatusFilterState] = useState<string>("");
   const [priorityFilter, setPriorityFilterState] = useState<string>("");
-
-  const [page, setPageState] = useState<number>(1);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 1,
-  });
+  const [timeframeFilter, setTimeframeFilterState] = useState<string>("all");
 
   useEffect(() => {
     if (!token) {
@@ -45,13 +37,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       setSearchState("");
       setStatusFilterState("");
       setPriorityFilterState("");
-      setPageState(1);
-      setPagination({
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-      });
+      setTimeframeFilterState("all");
     }
   }, [token]);
 
@@ -60,14 +46,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     setLoading(true);
     setError(null);
     try {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        limit: "10",
-      });
+      const queryParams = new URLSearchParams();
 
       if (search) queryParams.append("search", search);
       if (statusFilter) queryParams.append("status", statusFilter);
       if (priorityFilter) queryParams.append("priority", priorityFilter);
+      if (timeframeFilter !== "all") queryParams.append("timeframe", timeframeFilter);
 
       const response = await fetch(`/api/tasks?${queryParams.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -80,13 +64,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       setTasks(data.tasks);
-      setPagination(data.pagination);
     } catch (err: any) {
       setError(err.message || "Error loading tasks");
     } finally {
       setLoading(false);
     }
-  }, [token, page, search, statusFilter, priorityFilter]);
+  }, [token, search, statusFilter, priorityFilter, timeframeFilter]);
 
   const fetchTeams = useCallback(async () => {
     if (!token) return;
@@ -117,21 +100,18 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const setSearch = (s: string) => {
     setSearchState(s);
-    setPageState(1);
   };
 
   const setStatusFilter = (sf: string) => {
     setStatusFilterState(sf);
-    setPageState(1);
   };
 
   const setPriorityFilter = (pf: string) => {
     setPriorityFilterState(pf);
-    setPageState(1);
   };
 
-  const setPage = (p: number) => {
-    setPageState(p);
+  const setTimeframeFilter = (tf: string) => {
+    setTimeframeFilterState(tf);
   };
 
   const createTask = async (taskData: Partial<Task>): Promise<boolean> => {
@@ -315,16 +295,16 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         tasks,
         teams,
-        pagination,
         loading,
         error,
         search,
         statusFilter,
         priorityFilter,
+        timeframeFilter,
         setSearch,
         setStatusFilter,
         setPriorityFilter,
-        setPage,
+        setTimeframeFilter,
         fetchTasks,
         fetchTeams,
         createTask,

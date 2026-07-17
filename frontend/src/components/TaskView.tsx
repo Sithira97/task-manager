@@ -46,18 +46,21 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                       ? "warning-light"
                       : "success-light"
                 }
-                className="pointer-events-none rounded-sm px-2 capitalize"
+                className="pointer-events-none text-base rounded-sm h-auto py-1 px-3 capitalize"
               >
                 {task.priority} Priority
               </Badge>
-              <Badge variant="outline" className="capitalize pointer-events-none rounded-sm px-2">
+              <Badge
+                variant="outline"
+                className="capitalize  text-base pointer-events-none rounded-sm h-auto py-1 px-3"
+              >
                 {task.status.replace("_", " ")}
               </Badge>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="flex flex-col gap-8 py-4">
+        <div className="flex flex-col gap-4 py-4">
           {/* Description Section */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -65,7 +68,11 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
               <h3 className="text-sm font-medium">Description</h3>
             </div>
             <div className="text-sm text-foreground/90 bg-muted/40 p-4 rounded-lg whitespace-pre-wrap border border-border/50">
-              {task.description || <span className="italic text-muted-foreground">No description provided.</span>}
+              {task.description || (
+                <span className="italic text-muted-foreground">
+                  No description provided.
+                </span>
+              )}
             </div>
           </div>
 
@@ -91,7 +98,9 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                 {task.created_by ? (
                   <div className="flex items-center gap-2.5">
                     <Avatar size="sm" className="h-7 w-7">
-                      <AvatarFallback className="text-xs">{getInitials(task.created_by.username)}</AvatarFallback>
+                      <AvatarFallback className="text-xs">
+                        {getInitials(task.created_by.username)}
+                      </AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium flex items-center gap-1.5">
                       {cleanCapitalize(task.created_by.username)}
@@ -109,21 +118,32 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Users size={16} />
-              <h3 className="text-sm font-medium">Assignees ({task.assignees?.length || 0})</h3>
+              <h3 className="text-sm font-medium">
+                Assignees ({task.assignees?.length || 0})
+              </h3>
             </div>
             {task.assignees && task.assignees.length > 0 ? (
               <div className="flex flex-wrap gap-2.5 pl-6">
                 {task.assignees.map((assignee: User) => (
-                  <div key={assignee.id} className="flex items-center gap-2.5 bg-background border border-border/60 py-1.5 pl-1.5 pr-3.5 rounded-full shadow-sm">
+                  <div
+                    key={assignee.id}
+                    className="flex items-center gap-2.5 bg-background border border-border/60 py-1.5 pl-1.5 pr-3.5 rounded-full shadow-sm"
+                  >
                     <Avatar size="sm" className="h-6 w-6">
-                      <AvatarFallback className="text-[10px]">{getInitials(assignee.username)}</AvatarFallback>
+                      <AvatarFallback className="text-[10px]">
+                        {getInitials(assignee.username)}
+                      </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm font-medium">{cleanCapitalize(assignee.username)}</span>
+                    <span className="text-sm font-medium">
+                      {cleanCapitalize(assignee.username)}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <span className="text-sm text-muted-foreground pl-6">Unassigned</span>
+              <span className="text-sm text-muted-foreground pl-6">
+                Unassigned
+              </span>
             )}
           </div>
         </div>

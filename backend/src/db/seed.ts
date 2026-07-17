@@ -17,7 +17,8 @@ const generateDateObj = (startMonth: number, endMonth: number) => {
   return new Date(year, month, day, hour, min);
 };
 
-const formatDate = (date: Date) => date.toISOString().slice(0, 19).replace("T", " ");
+const formatDate = (date: Date) =>
+  date.toISOString().slice(0, 19).replace("T", " ");
 
 const addRandomTime = (date: Date, maxDays: number = 5) => {
   const newDate = new Date(date);
@@ -164,18 +165,18 @@ const seed = async () => {
       const description = `This is a randomly generated task for ${title}. Needs to be completed by the due date.`;
       const priority = randomElement(priorities);
       const status = randomElement(statuses);
-      
-      const dueDateObj = generateDateObj(5, 7); // June (5) to August (7)
+
+      const dueDateObj = generateDateObj(6, 7); // June (5) to August (7)
       const dueDate = formatDate(dueDateObj);
-      
+
       const createdBy = randomInt(1, 20);
-      
-      const createdAtObj = generateDateObj(4, 5); // April to June
+
+      const createdAtObj = generateDateObj(5, 7); // April to June
       const createdAt = formatDate(createdAtObj);
-      
+
       const updatedAtObj = addRandomTime(createdAtObj, 14); // up to 14 days later
       const updatedAt = formatDate(updatedAtObj);
-      
+
       let deletedAt = "NULL";
       if (Math.random() < 0.1) {
         const deletedAtObj = addRandomTime(updatedAtObj, 7); // up to 7 days after update

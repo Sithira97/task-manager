@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { KanbanItem, KanbanItemHandle } from "./reui/kanban";
+import { KanbanItem } from "./reui/kanban";
 import { Badge } from "./reui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cleanCapitalize, getInitials } from "@/lib/words";
@@ -113,8 +113,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   </TooltipContent>
                 </Tooltip>
               )}
-              {assigneeList?.slice(0, 3).map((assignee: User) => (
-                <Tooltip>
+              {assigneeList?.slice(0, 3).map((assignee: User, idx) => (
+                <Tooltip key={idx}>
                   <TooltipTrigger>
                     <Avatar size="sm">
                       <AvatarFallback>
@@ -156,7 +156,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       </CardContent>
 
-      <CardFooter className="flex">
+      <CardFooter className="flex gap-x-2">
         <label
           htmlFor={`status-select-${task.id}`}
           className="text-sm font-medium shrink-0"
@@ -169,7 +169,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             value={task.status}
             onValueChange={handleStatusChange}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full text-sm">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
@@ -189,11 +189,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <KanbanItem value={task.id.toString()} {...props}>
-      {asHandle && !isOverlay ? (
-        <KanbanItemHandle>{cardContent}</KanbanItemHandle>
-      ) : (
-        cardContent
-      )}
+      {cardContent}
     </KanbanItem>
   );
 };

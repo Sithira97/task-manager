@@ -9,7 +9,7 @@ import {
   KanbanOverlay,
 } from "@/components/reui/kanban";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useState, type ComponentProps } from "react";
+import { useCallback, useMemo, type ComponentProps } from "react";
 import { Badge } from "@/components/reui/badge";
 
 const COLUMN_TITLES: Record<string, string> = {
@@ -17,6 +17,8 @@ const COLUMN_TITLES: Record<string, string> = {
   in_progress: "In Progress",
   done: "Done",
 };
+
+const STATUS_KEYS = Object.keys(COLUMN_TITLES) as Task["status"][];
 
 interface TaskColumnProps extends Omit<
   ComponentProps<typeof KanbanColumn>,
@@ -58,20 +60,42 @@ function TaskColumn({ value, tasks, isOverlay, ...props }: TaskColumnProps) {
   );
 }
 
-const Tasks: React.FC = () => {
-  const { tasks } = useTasks();
+function buildColumns(tasks: Task[]): Record<string, Task[]> {
+  const cols: Record<string, Task[]> = {};
+  for (const key of STATUS_KEYS) {
+    cols[key] = [];
+  }
+  for (const task of tasks) {
+    if (cols[task.status]) {
+      cols[task.status].push(task);
+    }
+  }
+  return cols;
+}
 
-  const [columns, setColumns] = useState<Record<string, Task[]>>({
-    open: tasks.filter((task) => task.status === "open"),
-    in_progress: tasks.filter((task) => task.status === "in_progress"),
-    done: tasks.filter((task) => task.status === "done"),
-  });
+const Tasks: React.FC = () => {
+  const { tasks, updateTaskStatus } = useTasks();
+
+  const columns = useMemo(() => buildColumns(tasks), [tasks]);
+
+  const handleValueChange = useCallback(
+    (newColumns: Record<string, Task[]>) => {
+      for (const [status, columnTasks] of Object.entries(newColumns)) {
+        for (const task of columnTasks) {
+          if (task.status !== status) {
+            updateTaskStatus(task.id, status as Task["status"]);
+          }
+        }
+      }
+    },
+    [updateTaskStatus],
+  );
 
   return (
     <main className="flex-1 max-w-7xl mx-auto flex flex-col gap-3 w-full mb-16 sm:mb-0 pt-5 lg:px-5 over">
       <Kanban
         value={columns}
-        onValueChange={setColumns}
+        onValueChange={handleValueChange}
         getItemValue={(item) => item.id.toString()}
       >
         <KanbanBoard className="flex-1 flex flex-col gap-2  lg:grid auto-rows-fr grid-cols-3  w-full px-4">

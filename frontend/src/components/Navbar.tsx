@@ -13,9 +13,15 @@ import { useRoute } from "../context/RouterContext";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { ModeToggle } from "./mode-toggle";
 
 function AppSidebar({
   setModalOpen,
@@ -27,71 +33,110 @@ function AppSidebar({
   const { currentView, setCurrentView } = useRoute();
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} className="sm:block">
       <SidebarHeader>
-        <div className="flex items-center gap-3 p-6 text-primary">
+        <SidebarMenuItem className="my-4 flex items-center justify-center gap-x-2 group-data-[state=open]:px-2">
           <CalendarRange size={28} />
-          <h1 className="text-lg font-bold">Task Manager</h1>
-        </div>
-        <div className="flex">
-          <Button className="w-full m-4" onClick={() => setModalOpen(true)}>
-            <Plus size={18} />
-            New Task
-          </Button>
-        </div>
+          <h1 className="text-lg font-bold group-data-[state=collapsed]:hidden [&_svg]:shrink-0 [&>span:last-child]:truncate whitespace-nowrap">
+            Task Manager
+          </h1>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem className="my-4">
+          <Tooltip>
+            <TooltipTrigger
+              className="w-full"
+              onClick={() => setModalOpen(true)}
+              render={
+                <Button className="w-full [&_svg]:shrink-0 [&>span:last-child]:truncate">
+                  <Plus size={18} />
+                  <span className="group-data-[state=collapsed]:hidden">
+                    New Task
+                  </span>
+                </Button>
+              }
+            />
+            <TooltipContent side="right" align="center">
+              New Task
+            </TooltipContent>
+          </Tooltip>
+        </SidebarMenuItem>
       </SidebarHeader>
       <SidebarContent>
-        <nav className="flex-1 overflow-y-auto sm:mt-5">
-          <ul className="space-y-2 text-foreground">
-            <li>
-              <Button
-                variant="link"
-                onClick={() => setCurrentView("dashboard")}
-                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "dashboard" ? "text-primary bg-primary/5 border-r-4 border-primary" : ""}`}
-              >
-                <LayoutDashboard size={20} />
-                <span className="text-xs sm:text-sm">Dashboard</span>
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant="link"
-                onClick={() => setCurrentView("tasks")}
-                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "tasks" ? "text-primary bg-primary/5 border-r-4 border-primary" : ""}`}
-              >
-                <KanbanSquare size={20} />
-                <span className="text-xs sm:text-sm">My Tasks</span>
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant="link"
-                onClick={() => setCurrentView("schedule")}
-                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "schedule" ? "text-primary bg-primary/5 border-r-4 border-primary" : ""}`}
-              >
-                <CalendarRange size={20} />
-                <span className="text-xs sm:text-sm">Schedule</span>
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant="link"
-                onClick={() => setCurrentView("teams")}
-                className={`flex w-full items-center gap-2 sm:gap-3 px-6 py-2 hover:bg-accent justify-start ${currentView === "teams" ? "text-primary bg-primary/5 border-r-4 border-primary" : ""}`}
-              >
-                <Users size={20} />
-                <span className="text-xs sm:text-sm">Teams</span>
-              </Button>
-            </li>
-          </ul>
-        </nav>
-        <div className="flex">
-          <Button className="w-full m-4" variant="outline" onClick={logout}>
-            <LogOut size={18} />
-            <span>Sign Out</span>
-          </Button>
-        </div>
+        <SidebarMenu className="px-2">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Dashboard"
+              onClick={() => setCurrentView("dashboard")}
+              isActive={currentView === "dashboard"}
+            >
+              <LayoutDashboard size={20} />
+              <span>Dashboard</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="My Tasks"
+              onClick={() => setCurrentView("tasks")}
+              isActive={currentView === "tasks"}
+            >
+              <KanbanSquare size={20} />
+              <span className="text-xs sm:text-sm">My Tasks</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Schedule"
+              onClick={() => setCurrentView("schedule")}
+              isActive={currentView === "schedule"}
+            >
+              <CalendarRange size={20} />
+              <span className="text-xs sm:text-sm">Schedule</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Teams"
+              onClick={() => setCurrentView("teams")}
+              isActive={currentView === "teams"}
+            >
+              <Users size={20} />
+              <span className="text-xs sm:text-sm">Teams</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarContent>
+      <SidebarFooter className="mb-2">
+        <SidebarMenu className="gap-2">
+          <SidebarMenuItem className=" px-5">
+            <ModeToggle className="w-full" />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Tooltip>
+              <TooltipTrigger
+                className="w-full"
+                onClick={() => setModalOpen(true)}
+                render={
+                  <Button
+                    variant="outline"
+                    className="w-full [&_svg]:shrink-0 [&>span:last-child]:truncate"
+                    onClick={logout}
+                  >
+                    <LogOut size={20} />
+                    <span className="group-data-[state=collapsed]:hidden">
+                      Sign Out
+                    </span>
+                  </Button>
+                }
+              />
+              <TooltipContent side="right" align="center">
+                Sign Out
+              </TooltipContent>
+            </Tooltip>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );

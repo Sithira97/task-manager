@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Field, FieldLabel } from "./ui/field";
+import { DatePickerInput } from "./ui/date-picker";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -145,6 +146,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
             <FieldLabel htmlFor="task-title">Title *</FieldLabel>
             <Input
               id="task-title"
+              className="text-sm"
               type="text"
               required
               value={title}
@@ -156,6 +158,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
           <Field>
             <FieldLabel htmlFor="task-desc">Description *</FieldLabel>
             <Textarea
+              className="text-sm"
               id="task-desc"
               required
               rows={3}
@@ -168,9 +171,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Field>
               <FieldLabel htmlFor="task-status">Status</FieldLabel>
-              <Select items={statusValues} value={status}>
+              <Select
+                items={statusValues}
+                value={status}
+                onValueChange={setStatus}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Theme" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -186,9 +193,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
 
             <Field>
               <FieldLabel htmlFor="task-priority">Priority</FieldLabel>
-              <Select items={priorityValues} value={priority}>
+              <Select
+                items={priorityValues}
+                value={priority}
+                onValueChange={setPriority}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Theme" />
+                  <SelectValue placeholder="Priority" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -204,12 +215,12 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
 
             <Field className="col-span-2 md:col-span-1">
               <FieldLabel htmlFor="task-due">Due Date *</FieldLabel>
-              <Input
+              <DatePickerInput
                 id="task-due"
-                type="date"
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                className="text-sm"
               />
             </Field>
           </div>
@@ -228,7 +239,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
                           )}
                         </ComboboxChip>
                       ))}
-                      <ComboboxChipsInput />
+                      <ComboboxChipsInput placeholder="Select assignees" />
                     </>
                   )}
                 </ComboboxValue>

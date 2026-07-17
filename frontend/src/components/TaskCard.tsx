@@ -80,9 +80,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <Card>
       <CardContent className="flex flex-col gap-2.5 min-w-64 max-w lg:w-auto">
-        <CardHeader 
+        <CardHeader
           className="px-0 cursor-pointer group hover:bg-muted/10 transition-colors -mx-6 -mt-6 px-6 pt-6 pb-2 rounded-t-lg"
-          onClick={() => setModalView && setModalView({ open: true, taskId: task.id })}
+          onClick={() =>
+            setModalView && setModalView({ open: true, taskId: task.id })
+          }
         >
           <CardTitle className="line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors">
             {task.title}
@@ -157,14 +159,23 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 </Tooltip>
               )}
             </AvatarGroup>
-            <div className="flex items-center gap-1.5">
-              <Calendar size={14} />
-              {task.due_date && (
-                <time className="text-[10px] whitespace-nowrap tabular-nums">
+            {task.due_date &&
+            task.status !== "done" &&
+            Date.parse(task.due_date) < Date.now() ? (
+              <div className="flex items-center gap-1.5 text-red-500">
+                <Calendar size={14} />
+                <time className="text-xs whitespace-nowrap tabular-nums">
                   {formatDate(task.due_date)}
                 </time>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <Calendar size={14} />
+                <time className="text-xs whitespace-nowrap tabular-nums">
+                  {formatDate(task.due_date)}
+                </time>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

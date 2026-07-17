@@ -63,7 +63,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   task,
 }) => {
   const { createTask, updateTaskOptimistic } = useTasks();
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const anchor = useComboboxAnchor();
 
   // Form State
@@ -275,7 +275,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <ComboboxEmpty>No items found.</ComboboxEmpty>
                 <ComboboxList>
                   {(item: User) => (
-                    <ComboboxItem key={item.id + Math.random()} value={item.id}>
+                    <ComboboxItem
+                      key={item.id + Math.random()}
+                      value={item.id}
+                      disabled={item.id === user?.id}
+                    >
                       {cleanCapitalize(item.username)}
                     </ComboboxItem>
                   )}

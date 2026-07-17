@@ -21,7 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -29,6 +34,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ArrowDownUp } from "lucide-react";
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
 import { Badge } from "@/components/reui/badge";
 import { useAuth } from "@/context/AuthContext";
@@ -82,6 +95,29 @@ function TaskColumn({
   setModalView,
   ...props
 }: TaskColumnProps) {
+  const [sortBy, setSortBy] = useState<
+    "due_date" | "created_at" | "updated_at" | null
+  >(null);
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (sortBy === "due_date") {
+      const aTime = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+      const bTime = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+      return aTime - bTime;
+    }
+    if (sortBy === "created_at") {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bTime - aTime;
+    }
+    if (sortBy === "updated_at") {
+      const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+      const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+      return bTime - aTime;
+    }
+    return 0;
+  });
+
   return (
     <KanbanColumn value={value} {...props}>
       <Card className="mb-2.5 w-full flex flex-1 gap-0 py-0">
@@ -92,13 +128,54 @@ function TaskColumn({
             </span>
             <Badge variant="outline">{tasks.length}</Badge>
           </div>
+          <CardAction>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <ArrowDownUp className="h-4 w-4" />
+                  </Button>
+                }
+              ></DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => setSortBy(null)}
+                  className={sortBy === null ? "bg-muted" : ""}
+                >
+                  Default
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("due_date")}
+                  className={sortBy === "due_date" ? "bg-muted" : ""}
+                >
+                  Due Soon
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("created_at")}
+                  className={sortBy === "created_at" ? "bg-muted" : ""}
+                >
+                  Created Date
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("updated_at")}
+                  className={sortBy === "updated_at" ? "bg-muted" : ""}
+                >
+                  Updated Date
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardAction>
         </CardHeader>
         <CardContent className="px-0">
           <KanbanColumnContent
             value={value}
             className="flex-row lg:flex-col overflow-x-auto p-4"
           >
-            {tasks.map((task) => (
+            {sortedTasks.map((task) => (
               <KanbanItem key={task.id} value={task.id.toString()} {...props}>
                 {!isOverlay ? (
                   <KanbanItemHandle>

@@ -28,6 +28,10 @@ const formatDate = (dateString: string) => {
 
 const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
   if (!task) return null;
+  const isOverdue =
+    task.due_date &&
+    task.status !== "done" &&
+    Date.parse(task.due_date) < Date.now();
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -35,7 +39,17 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
         <DialogHeader>
           <div className="flex flex-col gap-3 w-full pr-6">
             <DialogTitle className="text-xl leading-tight font-semibold break-words">
-              {task.title}
+              <div className="flex items-center gap-2">
+                {task.title}
+                {isOverdue && (
+                  <Badge
+                    variant={"destructive-light"}
+                    className="pointer-events-none rounded-sm h-auto py-1 px-3 capitalize"
+                  >
+                    Overdue
+                  </Badge>
+                )}
+              </div>
             </DialogTitle>
             <div className="flex flex-wrap items-center gap-2">
               <Badge
@@ -83,8 +97,15 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                 <Clock size={16} />
                 <h3 className="text-sm font-medium">Due Date</h3>
               </div>
-              <div className="flex items-center gap-2 text-sm font-medium pl-6">
-                <Calendar size={15} className="text-muted-foreground/70" />
+              <div
+                className={`flex items-center gap-2 text-sm font-medium pl-6 ${isOverdue ? "text-red-500" : ""}`}
+              >
+                <Calendar
+                  size={15}
+                  className={`text-muted-foreground/70 ${
+                    isOverdue ? "text-red-500" : ""
+                  }`}
+                />
                 {task.due_date ? formatDate(task.due_date) : "No due date"}
               </div>
             </div>

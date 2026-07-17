@@ -37,6 +37,24 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     totalPages: 1,
   });
 
+  useEffect(() => {
+    if (!token) {
+      setTasks([]);
+      setTeams([]);
+      setError(null);
+      setSearchState("");
+      setStatusFilterState("");
+      setPriorityFilterState("");
+      setPageState(1);
+      setPagination({
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      });
+    }
+  }, [token]);
+
   const fetchTasks = useCallback(async () => {
     if (!token) return;
     setLoading(true);

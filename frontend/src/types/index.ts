@@ -39,6 +39,7 @@ export interface User {
 
 export interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
   token: string | null;
   loading: boolean;
   error: string | null;

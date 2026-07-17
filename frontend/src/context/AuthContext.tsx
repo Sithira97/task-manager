@@ -10,6 +10,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("auth_token");
@@ -19,6 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
+        setIsAdmin(JSON.parse(savedUser).role === "admin");
       } catch (e) {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
@@ -50,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(data.user);
       localStorage.setItem("auth_token", data.token);
       localStorage.setItem("auth_user", JSON.stringify(data.user));
+      setIsAdmin(data.user.role === "admin");
       return true;
     } catch (err: any) {
       setError(err.message || "An error occurred");
@@ -80,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(data.user);
       localStorage.setItem("auth_token", data.token);
       localStorage.setItem("auth_user", JSON.stringify(data.user));
+      setIsAdmin(data.user.role === "admin");
       return true;
     } catch (err: any) {
       setError(err.message || "An error occurred");
@@ -92,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser(null);
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    setIsAdmin(false);
   };
 
   const clearError = () => setError(null);
@@ -100,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     <AuthContext.Provider
       value={{
         user,
+        isAdmin,
         token,
         loading,
         error,

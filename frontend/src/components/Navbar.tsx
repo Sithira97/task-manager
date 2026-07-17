@@ -1,11 +1,4 @@
-import {
-  CalendarRange,
-  KanbanSquare,
-  LayoutDashboard,
-  LogOut,
-  Plus,
-  Users,
-} from "lucide-react";
+import { CalendarRange, LogOut, Plus, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { useRoute } from "../context/RouterContext";
@@ -22,11 +15,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { ModeToggle } from "./ui/mode-toggle";
+import type { Route } from "../types";
 
 function AppSidebar({
+  navItem,
   setModalOpen,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
+  navItem: { view: Route; icon: LucideIcon; label: string }[];
   setModalOpen: (open: boolean) => void;
 }) {
   const { logout } = useAuth();
@@ -64,52 +60,24 @@ function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="px-2">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Dashboard"
-              onClick={() => setCurrentView("dashboard")}
-              isActive={currentView === "dashboard"}
-            >
-              <LayoutDashboard size={20} />
-              <span>Dashboard</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="My Tasks"
-              onClick={() => setCurrentView("tasks")}
-              isActive={currentView === "tasks"}
-            >
-              <KanbanSquare size={20} />
-              <span className="text-xs sm:text-sm">My Tasks</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Schedule"
-              onClick={() => setCurrentView("schedule")}
-              isActive={currentView === "schedule"}
-            >
-              <CalendarRange size={20} />
-              <span className="text-xs sm:text-sm">Schedule</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Teams"
-              onClick={() => setCurrentView("teams")}
-              isActive={currentView === "teams"}
-            >
-              <Users size={20} />
-              <span className="text-xs sm:text-sm">Teams</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {navItem.map((item) => (
+            <SidebarMenuItem key={item.view}>
+              <SidebarMenuButton
+                tooltip={item.label}
+                onClick={() => setCurrentView(item.view)}
+                isActive={currentView === item.view}
+              >
+                <item.icon size={20} />
+                <span>{item.label}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="mb-2">
         <SidebarMenu className="gap-2">
-          <SidebarMenuItem className=" px-5">
-            <ModeToggle className="w-full" />
+          <SidebarMenuItem>
+            <ModeToggle tabs={false} />
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Tooltip>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import MobileNav from "./MobileNav";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -8,7 +8,13 @@ import { Input } from "./ui/input";
 import { useTasks } from "@/context/TaskContext";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "../context/AuthContext";
-import { CalendarRange } from "lucide-react";
+import {
+  CalendarRange,
+  KanbanSquare,
+  LayoutDashboard,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -20,6 +26,25 @@ import {
 import { Button } from "./ui/button";
 import { cleanCapitalize } from "@/lib/words";
 import { ModeToggle } from "./ui/mode-toggle";
+import type { Route } from "../types";
+
+const NavItem: { view: Route; icon: LucideIcon; label: string }[] = [
+  {
+    view: "tasks",
+    icon: KanbanSquare,
+    label: "My Tasks",
+  },
+  {
+    view: "schedule",
+    icon: CalendarRange,
+    label: "Schedule",
+  },
+  {
+    view: "teams",
+    icon: Users,
+    label: "Teams",
+  },
+];
 
 const Layout: React.FC<{
   children: React.ReactNode;
@@ -27,10 +52,27 @@ const Layout: React.FC<{
   const isMobile = useIsMobile();
   const [isModalOpen, setModalOpen] = useState(false);
   const { search, setSearch } = useTasks();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
+  const [navItem, setNavItem] =
+    useState<{ view: Route; icon: LucideIcon; label: string }[]>(NavItem);
+
+  useEffect(() => {
+    if (user && isAdmin) {
+      setNavItem([
+        {
+          view: "dashboard",
+          icon: LayoutDashboard,
+          label: "Dashboard",
+        },
+        ...NavItem,
+      ]);
+    } else {
+      setNavItem(NavItem);
+    }
+  }, [user, isAdmin]);
   return (
     <SidebarProvider>
-      <Navbar setModalOpen={setModalOpen} />
+      <Navbar navItem={navItem} setModalOpen={setModalOpen} />
       <SidebarInset>
         <header className="sticky bg-background top-0 z-30 justify-between flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <div className="flex gap-2 items-center sm:hidden">
@@ -80,7 +122,7 @@ const Layout: React.FC<{
                     <PopoverDescription>{user?.email}</PopoverDescription>
                   </PopoverHeader>
                 )}
-                <ModeToggle className="w-full" />
+                <ModeToggle />
                 <Button variant="outline" className="w-full" onClick={logout}>
                   Sign Out
                 </Button>
@@ -89,7 +131,9 @@ const Layout: React.FC<{
           </div>
         </header>
         {children}
-        {isMobile && <MobileNav setModalOpen={setModalOpen} />}
+        {isMobile && (
+          <MobileNav navItem={navItem} setModalOpen={setModalOpen} />
+        )}
       </SidebarInset>
       <TaskModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </SidebarProvider>

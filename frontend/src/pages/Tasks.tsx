@@ -26,6 +26,7 @@ import { useCallback, useEffect, useState, type ComponentProps } from "react";
 import { Badge } from "@/components/reui/badge";
 import { useAuth } from "@/context/AuthContext";
 import TaskModal from "@/components/TaskModal";
+import TaskView from "@/components/TaskView";
 
 const COLUMN_TITLES: Record<string, string> = {
   open: "Open",
@@ -47,6 +48,9 @@ interface TaskColumnProps extends Omit<
   setModalEdit: React.Dispatch<
     React.SetStateAction<{ open: boolean; taskId: number }>
   >;
+  setModalView: React.Dispatch<
+    React.SetStateAction<{ open: boolean; taskId: number }>
+  >;
 }
 
 function TaskColumn({
@@ -55,6 +59,7 @@ function TaskColumn({
   isOverlay,
   setDialogDelete,
   setModalEdit,
+  setModalView,
   ...props
 }: TaskColumnProps) {
   return (
@@ -81,6 +86,7 @@ function TaskColumn({
                       task={task}
                       setDialogDelete={setDialogDelete}
                       setModalEdit={setModalEdit}
+                      setModalView={setModalView}
                     />
                   </KanbanItemHandle>
                 ) : (
@@ -88,6 +94,7 @@ function TaskColumn({
                     task={task}
                     setDialogDelete={setDialogDelete}
                     setModalEdit={setModalEdit}
+                    setModalView={setModalView}
                   />
                 )}
               </KanbanItem>
@@ -128,6 +135,10 @@ const Tasks: React.FC = () => {
       taskId: 0,
     },
   );
+  const [modalView, setModalView] = useState<{ open: boolean; taskId: number }>({
+    open: false,
+    taskId: 0,
+  });
 
   const [columns, setColumns] = useState<Record<string, Task[]>>(() =>
     buildColumns(tasks),
@@ -163,6 +174,7 @@ const Tasks: React.FC = () => {
               tasks={columnTasks}
               setDialogDelete={setDialogDelete}
               setModalEdit={setModalEdit}
+              setModalView={setModalView}
             />
           ))}
         </KanbanBoard>
@@ -225,6 +237,11 @@ const Tasks: React.FC = () => {
         onClose={() => setModalEdit({ open: false, taskId: 0 })}
         isEdit={true}
         task={tasks.find((t) => t.id === modalEdit.taskId)}
+      />
+      <TaskView
+        isOpen={modalView.open}
+        onClose={() => setModalView({ open: false, taskId: 0 })}
+        task={tasks.find((t) => t.id === modalView.taskId)}
       />
     </main>
   );

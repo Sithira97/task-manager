@@ -8,10 +8,15 @@ import type { Task } from "../types";
 import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "../lib/calender";
 import { getPriorityClasses, getStatusIcon } from "../lib/enums";
 import TaskCard from "./TaskCard";
+import TaskView from "./TaskView";
 
 const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [modalView, setModalView] = useState<{ open: boolean; taskId: number }>({
+    open: false,
+    taskId: 0,
+  });
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -100,7 +105,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
               <CalendarIcon size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-black bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-black text-primary">
                 {monthName} {year}
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -264,7 +269,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
               ) : (
                 selectedTasks.map((task) => (
                   <div key={task.id}>
-                    <TaskCard task={task} />
+                    <TaskCard task={task} setModalView={setModalView} />
                   </div>
                 ))
               )}
@@ -272,6 +277,11 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
           </div>
         )}
       </div>
+      <TaskView
+        isOpen={modalView.open}
+        onClose={() => setModalView({ open: false, taskId: 0 })}
+        task={tasks.find((t) => t.id === modalView.taskId)}
+      />
     </main>
   );
 };

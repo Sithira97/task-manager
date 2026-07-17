@@ -19,7 +19,7 @@ import {
 } from "./ui/popover";
 import { Button } from "./ui/button";
 import { cleanCapitalize } from "@/lib/words";
-import { ModeToggle } from "./mode-toggle";
+import { ModeToggle } from "./ui/mode-toggle";
 
 const Layout: React.FC<{
   children: React.ReactNode;

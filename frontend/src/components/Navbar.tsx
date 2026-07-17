@@ -21,7 +21,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { ModeToggle } from "./mode-toggle";
+import { ModeToggle } from "./ui/mode-toggle";
 
 function AppSidebar({
   setModalOpen,

@@ -1,7 +1,7 @@
 import { Moon, Monitor, Sun } from "lucide-react";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTheme } from "@/components/theme-provider";
+import { useTheme } from "@/context/ThemeContext";
 
 export function ModeToggle({
   className,

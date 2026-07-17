@@ -124,9 +124,10 @@ export const login = async (req: Request, res: Response) => {
 
 // get users
 export const getUsers = async (req: AuthRequest, res: Response) => {
+  const isAdmin = req.user!.role === "admin";
   try {
     const [users] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, username, email, role FROM users",
+      `SELECT id, username${isAdmin ? ", email, role" : ""} FROM users`,
     );
     return res.json({
       message: "users fetched successfully",

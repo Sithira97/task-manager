@@ -87,15 +87,15 @@ const Dashboard: React.FC = () => {
   const statusChartConfig = {
     open: {
       label: "Open",
-      color: "#3b82f6", // blue
+      color: "#f59e0b",
     },
     in_progress: {
       label: "In Progress",
-      color: "#10b981", // emerald
+      color: "#3b82f6",
     },
     done: {
       label: "Done",
-      color: "#f59e0b", // amber
+      color: "#10b981",
     },
   } satisfies ChartConfig;
 
@@ -158,7 +158,7 @@ const Dashboard: React.FC = () => {
         <Card className="border border-border shadow-sm">
           <CardContent className="flex flex-col">
             <div className="flex gap-2 items-center">
-              <AlertCircle size={22} color="#3b82f6" />
+              <AlertCircle size={22} color="#f59e0b" />
               <span className="text-sm text-muted-foreground">Open Tasks</span>
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
@@ -170,7 +170,7 @@ const Dashboard: React.FC = () => {
         <Card className="border border-border shadow-sm">
           <CardContent className="flex flex-col">
             <div className="flex gap-2 items-center">
-              <PlayCircle size={22} color="#10b981" />
+              <PlayCircle size={22} color="#3b82f6" />
 
               <span className="text-sm text-muted-foreground">
                 Tasks In Progress
@@ -185,7 +185,7 @@ const Dashboard: React.FC = () => {
         <Card className="border border-border shadow-sm">
           <CardContent className="flex flex-col">
             <div className="flex gap-2 items-center">
-              <CheckCircle2 size={22} color="#f59e0b" />
+              <CheckCircle2 size={22} color="#10b981" />
               <span className="text-sm text-muted-foreground">
                 Completed Tasks
               </span>

@@ -13,6 +13,19 @@ export const getPriorityClasses = (priority: "low" | "medium" | "high") => {
   }
 };
 
+export const getStatusClasses = (priority: "open" | "in_progress" | "done") => {
+  switch (priority) {
+    case "open":
+      return "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]";
+    case "in_progress":
+      return "bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]";
+    case "done":
+      return "bg-[#10b981]/10 text-[#10b981] border-[#10b981]";
+    default:
+      return "bg-slate-500/10 text-slate-500 border-slate-500/20";
+  }
+};
+
 export const getStatusIcon = (status: "open" | "in_progress" | "done") => {
   switch (status) {
     case "done":

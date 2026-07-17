@@ -6,17 +6,19 @@ import {
 } from "lucide-react";
 import type { Task } from "../types";
 import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "../lib/calender";
-import { getPriorityClasses, getStatusIcon } from "../lib/enums";
+import { getStatusClasses, getStatusIcon } from "../lib/enums";
 import TaskCard from "./TaskCard";
 import TaskView from "./TaskView";
 
 const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [modalView, setModalView] = useState<{ open: boolean; taskId: number }>({
-    open: false,
-    taskId: 0,
-  });
+  const [modalView, setModalView] = useState<{ open: boolean; taskId: number }>(
+    {
+      open: false,
+      taskId: 0,
+    },
+  );
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -210,8 +212,8 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
                             return (
                               <div
                                 key={task.id}
-                                className={` w-full text-[10px] px-1.5 py-0.5 rounded border font-medium truncate flex items-center gap-1 ${getPriorityClasses(
-                                  task.priority,
+                                className={` w-full text-[10px] px-1.5 py-0.5 rounded border font-medium truncate flex items-center gap-1 ${getStatusClasses(
+                                  task.status,
                                 )}`}
                               >
                                 <span className="shrink-0">

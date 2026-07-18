@@ -114,3 +114,69 @@ export const fetchTeam = (
       LEFT JOIN users u2 ON
         a.user_id = u2.id WHERE ${taskId} = t.id ${isAdmin ? "" : `AND t.deleted_at IS NULL`} GROUP BY t.id ${isAdmin ? "" : `HAVING (MAX(t.created_by = ${id}) = 1 OR MAX(a.user_id = ${id}) = 1)`}`;
 };
+
+export const fetchUsersWorkWith = (id: number, isAdmin?: boolean) => {
+  return `SELECT u1.id, u1.username, u1.email , u1.role,
+        COALESCE(JSON_ARRAYAGG(CASE
+                WHEN t.id IS NOT NULL THEN 
+            JSON_OBJECT(
+                "id", t.id,
+                "title", t.title,
+                "description", t.description,
+                "priority", t.priority,
+                "status", t.status,
+                "due_date", t.due_date,
+                "created_at", t.created_at,
+                "updated_at", t.updated_at,
+                "deleted_at", t.deleted_at,
+                'assignees', COALESCE(ta.assignees, JSON_ARRAY())
+                )
+            END
+        ), JSON_ARRAY()
+    ) AS tasks
+      FROM users u1
+      LEFT JOIN tasks t
+        ON t.created_by = u1.id
+      LEFT JOIN (
+        SELECT a.task_id,
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    "user_id", u2.id,
+                    "username", u2.username,
+                    "email", u2.email
+                    ${isAdmin ? ", 'role', u2.role" : ""}
+                )
+            ) AS assignees
+        FROM assignees a
+        JOIN users u2 ON 
+            a.user_id = u2.id
+       GROUP BY a.task_id
+) ta
+    ON ta.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ${id}`} GROUP BY
+        u1.id,
+        u1.username,
+        u1.email,
+        u1.role;
+`;
+};
+
+export const fetchUsersWorkFor = (id: number, isAdmin?: boolean) => {
+  return `SELECT u1.id, u1.username, u1.email${isAdmin ? " , u1.role" : ""},
+        IF(COUNT(a.task_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
+            JSON_OBJECT(
+                "id", t.id,
+                "title", t.title,
+                "description", t.description,
+                "priority", t.priority,
+                "status", t.status,
+                "due_date", t.due_date,
+                "created_at", t.created_at,
+                "updated_at", t.updated_at,
+                "deleted_at", t.deleted_at))) AS tasks
+      FROM
+        users u1
+      LEFT JOIN assignees a ON
+       u1.id =  a.user_id
+      LEFT JOIN tasks t ON
+        a.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ${id}`} GROUP BY u1.id`;
+};

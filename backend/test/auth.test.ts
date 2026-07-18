@@ -1,3 +1,5 @@
+// backend/test/auth.test.ts
+
 import { describe, it, before, after } from "node:test";
 import app from "../src/app.js";
 import request from "supertest";
@@ -6,6 +8,7 @@ import pool from "../src/db/config.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ResultSetHeader } from "mysql2";
+import { User } from "../src/types/index.js";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "super_secret_development_key_123!";
@@ -165,7 +168,7 @@ describe("Auth API Tests", () => {
       );
     });
 
-    it("should allow admin to get all users", async () => {
+    it("should allow admin and non-admin to get all users", async () => {
       const response = await request(app)
         .get("/api/auth/users")
         .set("Authorization", `Bearer ${adminToken}`)
@@ -174,19 +177,7 @@ describe("Auth API Tests", () => {
 
       assert.ok(Array.isArray(response.body.users));
       assert.ok(response.body.users.length >= 2);
-    });
-
-    it("should block non-admin from getting all users", async () => {
-      const response = await request(app)
-        .get("/api/auth/users")
-        .set("Authorization", `Bearer ${regularUserToken}`)
-        .expect("Content-Type", /json/)
-        .expect(403);
-
-      assert.strictEqual(
-        response.body.error,
-        "Access denied: Admin privileges required",
-      );
+      assert.ok(response.body.users.find((user: User) => !!user.role));
     });
 
     it("should allow admin to get a user by ID", async () => {

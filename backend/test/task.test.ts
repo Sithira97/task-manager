@@ -1,3 +1,5 @@
+// backend/test/task.test.ts
+
 import { describe, it, before, after } from "node:test";
 import app from "../src/app.js";
 import request from "supertest";
@@ -21,23 +23,38 @@ describe("Task API Tests", () => {
   let task1Id: number;
 
   before(async () => {
-    await pool.execute("DELETE FROM users WHERE email IN (?, ?, ?)", [
-      "admin@test.com",
-      "usera@test.com",
-      "userb@test.com",
-    ]);
+    const usernames = ["admin_task", "usera_task", "userb_task"];
+    const emails = [
+      "admin@task-test.com",
+      "usera@task-test.com",
+      "userb@task-test.com",
+    ];
+
+    const [existing] = await pool.query<any[]>(
+      "SELECT id FROM users WHERE email IN (?)",
+      [emails],
+    );
+    const staleIds = existing.map((u: any) => u.id);
+
+    if (staleIds.length) {
+      await pool.query("DELETE FROM assignees WHERE user_id IN (?)", [
+        staleIds,
+      ]);
+      await pool.query("DELETE FROM tasks WHERE created_by IN (?)", [staleIds]);
+      await pool.query("DELETE FROM users WHERE id IN (?)", [staleIds]);
+    }
 
     const [adminRes] = await pool.execute<ResultSetHeader>(
       "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      ["admin", "admin@test.com", "hashed_password", "admin"],
+      [usernames[0], emails[0], "hashed_password", "admin"],
     );
     const [useraRes] = await pool.execute<ResultSetHeader>(
       "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      ["usera", "usera@test.com", "hashed_password", "user"],
+      [usernames[1], emails[1], "hashed_password", "user"],
     );
     const [userbRes] = await pool.execute<ResultSetHeader>(
       "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      ["userb", "userb@test.com", "hashed_password", "user"],
+      [usernames[2], emails[2], "hashed_password", "user"],
     );
 
     adminId = adminRes.insertId;
@@ -47,18 +64,18 @@ describe("Task API Tests", () => {
     adminToken = jwt.sign(
       {
         id: adminId,
-        username: "admin",
-        email: "admin@test.com",
+        username: usernames[0],
+        email: emails[0],
         role: "admin",
       },
       JWT_SECRET,
     );
     useraToken = jwt.sign(
-      { id: useraId, username: "usera", email: "usera@test.com", role: "user" },
+      { id: useraId, username: usernames[1], email: emails[1], role: "user" },
       JWT_SECRET,
     );
     userbToken = jwt.sign(
-      { id: userbId, username: "userb", email: "userb@test.com", role: "user" },
+      { id: userbId, username: usernames[2], email: emails[2], role: "user" },
       JWT_SECRET,
     );
   });
@@ -290,7 +307,6 @@ describe("Task API Tests", () => {
         .set("Authorization", `Bearer ${adminToken}`)
         .expect("Content-Type", /json/)
         .expect(200);
-
       assert.strictEqual(
         response.body.message,
         "Task permanently deleted successfully",

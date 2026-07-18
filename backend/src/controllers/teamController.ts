@@ -1,11 +1,16 @@
 import { Response } from "express";
 import pool from "../db/config.js";
 import { RowDataPacket } from "mysql2";
-import { fetchTeam, fetchTeams } from "../db/queries.js";
+import {
+  fetchTeam,
+  fetchTeams,
+  fetchUsersWorkFor,
+  fetchUsersWorkWith,
+} from "../db/queries.js";
 import { AuthRequest } from "../types/index.js";
 
-// create a new task ---------------------------------------
-export const getTeams = async (req: AuthRequest, res: Response) => {
+// get teams grouped by task ---------------------------------------
+export const getUsersTasks = async (req: AuthRequest, res: Response) => {
   const isAdmin = req.user!.role === "admin";
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
@@ -43,6 +48,56 @@ export const getTeam = async (req: AuthRequest, res: Response) => {
       success: true,
       message: "Team fetched successfully",
       data: tasks,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getTeams = async (req: AuthRequest, res: Response) => {
+  const isAdmin = req.user?.role === "admin" || false;
+  const users = new Map<number, any>();
+  try {
+    const [workWith] = await pool.execute<RowDataPacket[]>(
+      fetchUsersWorkWith(req.user!.id, isAdmin),
+    );
+
+    for (const user of workWith) {
+      users.set(user.id, {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        work_with: user.tasks,
+        work_for: [],
+      });
+    }
+
+    const [workFor] = await pool.execute<RowDataPacket[]>(
+      fetchUsersWorkFor(req.user!.id, isAdmin),
+    );
+
+    for (const user of workFor) {
+      if (!users.has(user.id)) {
+        users.set(user.id, {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          work_with: [],
+          work_for: user.tasks,
+        });
+      } else {
+        users.get(user.id).work_for = user.tasks;
+      }
+    }
+    return res.status(200).json({
+      success: true,
+      message: "User Task Groups fetched successfully",
+      users: Array.from(users.values()),
     });
   } catch (error) {
     console.log(error);

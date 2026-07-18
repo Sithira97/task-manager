@@ -1,15 +1,16 @@
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Tasks from "./pages/Tasks";
-import Schedule from "./pages/Schedule";
-import Teams from "./pages/Teams";
 import Layout from "./components/Layout";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { RouterProvider, useRoute } from "./context/RouterContext";
 import { TaskProvider } from "./context/TaskContext";
 import { TooltipProvider } from "./components/ui/tooltip";
+import Login from "./pages/Login";
+
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Tasks = lazy(() => import("@/pages/Tasks"));
+const Schedule = lazy(() => import("@/pages/Schedule"));
+const Teams = lazy(() => import("@/pages/Teams"));
+const Register = lazy(() => import("@/pages/Register"));
 
 const App: React.FC = () => {
   return (
@@ -54,7 +55,11 @@ const MainApp: React.FC = () => {
         viewComponent = <Teams />;
         break;
     }
-    return <Layout>{viewComponent}</Layout>;
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <Layout>{viewComponent}</Layout>
+      </Suspense>
+    );
   }
 
   return showRegister ? (

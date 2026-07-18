@@ -7,8 +7,10 @@ import {
 import type { Task } from "../types";
 import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "../lib/calender";
 import { getStatusClasses, getStatusIcon } from "../lib/enums";
-import TaskCard from "./TaskCard";
-import TaskView from "./TaskView";
+import { lazy, Suspense } from "react";
+
+const TaskCard = lazy(() => import("./TaskCard"));
+const TaskView = lazy(() => import("./TaskView"));
 
 const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -271,7 +273,9 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
               ) : (
                 selectedTasks.map((task) => (
                   <div key={task.id}>
-                    <TaskCard task={task} setModalView={setModalView} />
+                    <Suspense fallback={null}>
+                      <TaskCard task={task} setModalView={setModalView} />
+                    </Suspense>
                   </div>
                 ))
               )}
@@ -279,11 +283,14 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
           </div>
         )}
       </div>
-      <TaskView
-        isOpen={modalView.open}
-        onClose={() => setModalView({ open: false, taskId: 0 })}
-        task={tasks.find((t) => t.id === modalView.taskId)}
-      />
+
+      <Suspense fallback={null}>
+        <TaskView
+          isOpen={modalView.open}
+          onClose={() => setModalView({ open: false, taskId: 0 })}
+          task={tasks.find((t) => t.id === modalView.taskId)}
+        />
+      </Suspense>
     </main>
   );
 };

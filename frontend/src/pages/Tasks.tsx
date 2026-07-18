@@ -1,5 +1,4 @@
 import type { Task } from "@/types";
-import TaskCard from "../components/TaskCard";
 import { useTasks } from "../context/TaskContext";
 import {
   Kanban,
@@ -45,8 +44,6 @@ import { ArrowDownUp } from "lucide-react";
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
 import { Badge } from "@/components/reui/badge";
 import { useAuth } from "@/context/AuthContext";
-import TaskModal from "@/components/TaskModal";
-import TaskView from "@/components/TaskView";
 import {
   Field,
   FieldLabel,
@@ -55,6 +52,11 @@ import {
 } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Empty, EmptyDescription } from "@/components/ui/empty";
+import { lazy, Suspense } from "react";
+
+const TaskCard = lazy(() => import("@/components/TaskCard"));
+const TaskView = lazy(() => import("@/components/TaskView"));
+const TaskModal = lazy(() => import("@/components/TaskModal"));
 
 const COLUMN_TITLES: Record<string, string> = {
   open: "Open",
@@ -291,7 +293,11 @@ const Tasks: React.FC = () => {
           <Select
             items={PRIORITY_FILTER}
             value={priorityFilter || "all"}
-            onValueChange={(val) => val ? setPriorityFilter(val === "all" ? "" : val) : setPriorityFilter("")}
+            onValueChange={(val) =>
+              val
+                ? setPriorityFilter(val === "all" ? "" : val)
+                : setPriorityFilter("")
+            }
           >
             <SelectTrigger className="w-[140px] 2xl:hidden">
               <SelectValue placeholder="Priority" />
@@ -333,7 +339,9 @@ const Tasks: React.FC = () => {
             items={TIMEFRAME_FILTER}
             value={timeframeFilter || "all"}
             onValueChange={(val) =>
-              val ? setTimeframeFilter(val === "all" ? "" : val): setTimeframeFilter("")
+              val
+                ? setTimeframeFilter(val === "all" ? "" : val)
+                : setTimeframeFilter("")
             }
           >
             <SelectTrigger className="w-[150px] 2xl:hidden">
@@ -466,17 +474,21 @@ const Tasks: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <TaskModal
-        isOpen={modalEdit.open}
-        onClose={() => setModalEdit({ open: false, taskId: 0 })}
-        isEdit={true}
-        task={tasks.find((t) => t.id === modalEdit.taskId)}
-      />
-      <TaskView
-        isOpen={modalView.open}
-        onClose={() => setModalView({ open: false, taskId: 0 })}
-        task={tasks.find((t) => t.id === modalView.taskId)}
-      />
+      <Suspense fallback={null}>
+        <TaskModal
+          isOpen={modalEdit.open}
+          onClose={() => setModalEdit({ open: false, taskId: 0 })}
+          isEdit={true}
+          task={tasks.find((t) => t.id === modalEdit.taskId)}
+        />
+      </Suspense>
+      <Suspense fallback={null}>
+        <TaskView
+          isOpen={modalView.open}
+          onClose={() => setModalView({ open: false, taskId: 0 })}
+          task={tasks.find((t) => t.id === modalView.taskId)}
+        />
+      </Suspense>
     </div>
   );
 };

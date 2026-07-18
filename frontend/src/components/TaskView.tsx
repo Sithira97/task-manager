@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "./reui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Calendar, Crown, FileText, Users, Clock } from "lucide-react";
+import { Calendar, Crown, FileText, Users, Clock, Trash } from "lucide-react";
 import { cleanCapitalize, getInitials } from "@/lib/words";
 
 interface TaskViewProps {
@@ -38,9 +38,13 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
       <DialogContent className="sm:max-w-[42rem] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex flex-col gap-3 w-full pr-6">
-            <DialogTitle className="text-xl leading-tight font-semibold break-words">
-              <div className="flex items-center gap-2">
-                {task.title}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 text-xl leading-tight font-semibold break-words">
+                <DialogTitle
+                  className={`${task.deleted_at ? "text-destructive line-through" : ""}`}
+                >
+                  {task.title}
+                </DialogTitle>
                 {isOverdue && (
                   <Badge
                     variant={"destructive-light"}
@@ -50,7 +54,12 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                   </Badge>
                 )}
               </div>
-            </DialogTitle>
+              {task.deleted_at && (
+                <p className="text-destructive hidden sm:block">
+                  Deleted on: {formatDate(task.deleted_at)}
+                </p>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant={
@@ -74,7 +83,7 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
           </div>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-4">
+        <div className="flex flex-col gap-4">
           {/* Description Section */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -109,6 +118,19 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                 {task.due_date ? formatDate(task.due_date) : "No due date"}
               </div>
             </div>
+
+            {task.deleted_at && (
+              <div className="flex sm:hidden flex-col gap-3">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Trash size={16} />
+                  <h3 className="text-sm font-medium">Deleted Date</h3>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium pl-6 text-destructive">
+                  <Calendar size={15} className={`text-destructive`} />
+                  {formatDate(task.deleted_at)}
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-muted-foreground">

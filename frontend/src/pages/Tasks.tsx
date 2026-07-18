@@ -48,6 +48,15 @@ import { useAuth } from "@/context/AuthContext";
 import TaskModal from "@/components/TaskModal";
 import TaskView from "@/components/TaskView";
 
+import {
+  Field,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Empty, EmptyDescription } from "@/components/ui/empty";
+
 const COLUMN_TITLES: Record<string, string> = {
   open: "Open",
   in_progress: "In Progress",
@@ -62,7 +71,10 @@ const PRIORITY_FILTER = [
 ];
 
 const TIMEFRAME_FILTER = [
-  { label: "All Time", value: "all" },
+  {
+    label: "All Time",
+    value: "all",
+  },
   { label: "Week", value: "week" },
   { label: "Month", value: "month" },
 ];
@@ -119,8 +131,8 @@ function TaskColumn({
   });
 
   return (
-    <KanbanColumn value={value} {...props}>
-      <Card className="mb-2.5 w-full flex flex-1 gap-0 py-0">
+    <KanbanColumn value={value} {...props} className="min-w-0 flex flex-1">
+      <Card className="mb-2.5 w-full flex flex-1 gap-0 py-0 min-w-0">
         <CardHeader className="flex items-center justify-between pt-4">
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-semibold">
@@ -175,27 +187,33 @@ function TaskColumn({
             value={value}
             className="flex-row lg:flex-col overflow-x-auto p-4"
           >
-            {sortedTasks.map((task) => (
-              <KanbanItem key={task.id} value={task.id.toString()} {...props}>
-                {!isOverlay ? (
-                  <KanbanItemHandle>
+            {sortedTasks && sortedTasks.length > 0 ? (
+              sortedTasks.map((task) => (
+                <KanbanItem key={task.id} value={task.id.toString()} {...props}>
+                  {!isOverlay ? (
+                    <KanbanItemHandle>
+                      <TaskCard
+                        task={task}
+                        setDialogDelete={setDialogDelete}
+                        setModalEdit={setModalEdit}
+                        setModalView={setModalView}
+                      />
+                    </KanbanItemHandle>
+                  ) : (
                     <TaskCard
                       task={task}
                       setDialogDelete={setDialogDelete}
                       setModalEdit={setModalEdit}
                       setModalView={setModalView}
                     />
-                  </KanbanItemHandle>
-                ) : (
-                  <TaskCard
-                    task={task}
-                    setDialogDelete={setDialogDelete}
-                    setModalEdit={setModalEdit}
-                    setModalView={setModalView}
-                  />
-                )}
-              </KanbanItem>
-            ))}
+                  )}
+                </KanbanItem>
+              ))
+            ) : (
+              <Empty className="gap-0">
+                <EmptyDescription>No tasks found</EmptyDescription>
+              </Empty>
+            )}
           </KanbanColumnContent>
         </CardContent>
       </Card>
@@ -267,16 +285,16 @@ const Tasks: React.FC = () => {
   );
 
   return (
-    <main className="flex-1 max-w-7xl mx-auto flex flex-col gap-3 w-full mb-16 sm:mb-0 pt-5 lg:px-5 over">
-      <div className="flex flex-col sm:flex-row gap-4 px-4 sm:items-center justify-between">
+    <div className="w-full lg:max-w-7xl 2xl:max-w-[95rem] flex flex-1 mx-auto flex-col 2xl:flex-row gap-3 mb-17 sm:mb-0 pt-5 lg:px-2 xl:px-5 min-w-0">
+      <div className="flex flex-col xs:flex-row 2xl:flex-col gap-4 px-4 sm:items-center 2xl:items-start justify-between 2xl:justify-start">
         <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 2xl:flex-col 2xl:items-start 2xl:w-full">
           <Select
             items={PRIORITY_FILTER}
             value={priorityFilter || "all"}
             onValueChange={(val) => setPriorityFilter(val === "all" ? "" : val)}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px] 2xl:hidden">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
@@ -287,6 +305,28 @@ const Tasks: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          <FieldSet className="w-full max-w-xs hidden 2xl:flex">
+            <FieldLegend
+              variant="label"
+              className="text-muted-foreground 2xl:!text-base"
+            >
+              Task Priority
+            </FieldLegend>
+            <RadioGroup
+              className="2xl:flex hidden flex-col gap-1"
+              value={priorityFilter || "all"}
+              onValueChange={(val) =>
+                setPriorityFilter(val === "all" ? "" : val)
+              }
+            >
+              {PRIORITY_FILTER.map((priority) => (
+                <Field orientation="horizontal">
+                  <RadioGroupItem value={priority.value} id={priority.value} />
+                  <FieldLabel>{priority.label}</FieldLabel>
+                </Field>
+              ))}
+            </RadioGroup>
+          </FieldSet>
 
           <Select
             items={TIMEFRAME_FILTER}
@@ -295,7 +335,7 @@ const Tasks: React.FC = () => {
               setTimeframeFilter(val === "all" ? "" : val)
             }
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-[150px] 2xl:hidden">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent>
@@ -306,6 +346,28 @@ const Tasks: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          <FieldSet className="w-full max-w-xs hidden 2xl:flex">
+            <FieldLegend
+              variant="label"
+              className="text-muted-foreground 2xl:!text-base"
+            >
+              Task Timeframe
+            </FieldLegend>
+            <RadioGroup
+              className="hidden 2xl:flex flex-col gap-1"
+              value={timeframeFilter || "all"}
+              onValueChange={(val) =>
+                setPriorityFilter(val === "all" ? "" : val)
+              }
+            >
+              {TIMEFRAME_FILTER.map((priority) => (
+                <Field orientation="horizontal">
+                  <RadioGroupItem value={priority.value} id={priority.value} />
+                  <FieldLabel>{priority.label}</FieldLabel>
+                </Field>
+              ))}
+            </RadioGroup>
+          </FieldSet>
         </div>
       </div>
       <Kanban
@@ -313,8 +375,9 @@ const Tasks: React.FC = () => {
         onValueChange={setColumns}
         getItemValue={(item) => item.id.toString()}
         onMove={handleMove}
+        className="flex-1 min-w-0 flex"
       >
-        <KanbanBoard className="flex-1 flex flex-col gap-2  lg:grid auto-rows-fr grid-cols-3  w-full px-4">
+        <KanbanBoard className="flex-1 gap-2 grid grid-rows-3 grid-cols-1 sm:grid-cols-1 lg:grid-rows-1 lg:auto-rows-fr lg:grid-cols-3 px-4 min-w-0">
           {Object.entries(columns).map(([columnValue, columnTasks]) => (
             <TaskColumn
               key={columnValue}
@@ -350,12 +413,7 @@ const Tasks: React.FC = () => {
               associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => setDialogDelete({ open: false, taskId: 0 })}
-            >
-              Cancel
-            </AlertDialogCancel>
+          <AlertDialogFooter className="sm:flex-row sm:justify-between">
             {user && user.role == "admin" && (
               <AlertDialogAction
                 onClick={() => {
@@ -363,20 +421,42 @@ const Tasks: React.FC = () => {
                   setDialogDelete({ open: false, taskId: 0 });
                 }}
                 variant="outline"
-                className="border-destructive text-destructive/80 dark:hover:text-destructive-foreground hover:bg-destructive dark:hover:bg-destructive hover:text-destructive-foreground "
+                className="hidden sm:flex border-destructive text-destructive/80 dark:hover:text-destructive-foreground hover:bg-destructive dark:hover:bg-destructive hover:text-destructive-foreground "
               >
                 Permenantly Delete
               </AlertDialogAction>
             )}
-            <AlertDialogAction
-              onClick={() => {
-                deleteTask(dialogDelete.taskId);
-                setDialogDelete({ open: false, taskId: 0 });
-              }}
-              variant="destructive"
-            >
-              Delete
-            </AlertDialogAction>
+            <div className="flex flex-col-reverse sm:flex-row gap-2">
+              <AlertDialogCancel
+                onClick={() => setDialogDelete({ open: false, taskId: 0 })}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <div className="flex w-full gap-1 sm:w-fit sm:gap-2 justify-between">
+                <AlertDialogAction
+                  onClick={() => {
+                    deleteTask(dialogDelete.taskId);
+                    setDialogDelete({ open: false, taskId: 0 });
+                  }}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  Delete
+                </AlertDialogAction>
+                {user && user.role == "admin" && (
+                  <AlertDialogAction
+                    onClick={() => {
+                      forceDeleteTask(dialogDelete.taskId);
+                      setDialogDelete({ open: false, taskId: 0 });
+                    }}
+                    variant="outline"
+                    className="sm:hidden text-xs sm:text-sm border-destructive text-destructive/80 dark:hover:text-destructive-foreground hover:bg-destructive dark:hover:bg-destructive hover:text-destructive-foreground "
+                  >
+                    Permenantly Delete
+                  </AlertDialogAction>
+                )}
+              </div>
+            </div>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -391,7 +471,7 @@ const Tasks: React.FC = () => {
         onClose={() => setModalView({ open: false, taskId: 0 })}
         task={tasks.find((t) => t.id === modalView.taskId)}
       />
-    </main>
+    </div>
   );
 };
 

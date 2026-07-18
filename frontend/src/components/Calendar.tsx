@@ -212,7 +212,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
                             return (
                               <div
                                 key={task.id}
-                                className={` w-full text-[10px] px-1.5 py-0.5 rounded border font-medium truncate flex items-center gap-1 ${getStatusClasses(
+                                className={`${task.status == "done" ? "line-through" : ""} w-full text-[10px] px-1.5 py-0.5 rounded border font-medium truncate flex items-center gap-1 ${getStatusClasses(
                                   task.status,
                                 )}`}
                               >

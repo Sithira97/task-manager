@@ -75,18 +75,20 @@ const TaskCard: React.FC<TaskCardProps> = ({
     (assignee) => assignee.username !== task.created_by?.username,
   );
   const overflowAssignees =
-    assigneeList && assigneeList.length > 3 && assigneeList.slice(3);
+    assigneeList && assigneeList.length > 2 && assigneeList.slice(2);
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-2.5 min-w-64 max-w lg:w-auto">
+    <Card className="gap-2.5">
+      <CardContent className="flex flex-col gap-2 min-w-64 lg:min-w-auto max-w lg:w-auto">
         <CardHeader
           className="px-0 cursor-pointer group hover:bg-muted/10 transition-colors -mx-6 -mt-6 px-6 pt-6 pb-2 rounded-t-lg"
           onClick={() =>
             setModalView && setModalView({ open: true, taskId: task.id })
           }
         >
-          <CardTitle className="line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors">
+          <CardTitle
+            className={`line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status == "done" ? "line-through" : ""}`}
+          >
             {task.title}
           </CardTitle>
           <CardDescription className="text-muted-foreground line-clamp-1 lg:line-clamp-2 text-sm">
@@ -108,8 +110,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </CardAction>
         </CardHeader>
 
-        <div className="flex flex-col gap-2 pt-3 border-t border-border mt-auto">
-          <div className="flex justify-between items-end text-sm text-muted-foreground">
+        <div className="flex flex-col pt-3 border-t border-border mt-auto">
+          <div className="flex flex-row lg:flex-col xl:flex-row justify-between items-end lg:items-start xl:items-end text-sm text-muted-foreground">
             <AvatarGroup className="flex justify-end items-end">
               {task.created_by && (
                 <Tooltip>
@@ -128,7 +130,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   </TooltipContent>
                 </Tooltip>
               )}
-              {assigneeList?.slice(0, 3).map((assignee: User, idx) => (
+              {assigneeList?.slice(0, 2).map((assignee: User, idx) => (
                 <Tooltip key={idx}>
                   <TooltipTrigger>
                     <Avatar size="sm">
@@ -162,14 +164,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
             {task.due_date &&
             task.status !== "done" &&
             Date.parse(task.due_date) < Date.now() ? (
-              <div className="flex items-center gap-1.5 text-red-500">
+              <div className="flex self-end items-center gap-1.5 text-red-500 text-end">
                 <Calendar size={14} />
                 <time className="text-xs whitespace-nowrap tabular-nums">
                   {formatDate(task.due_date)}
                 </time>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex self-end  items-center gap-1.5">
                 <Calendar size={14} />
                 <time className="text-xs whitespace-nowrap tabular-nums">
                   {formatDate(task.due_date)}
@@ -180,8 +182,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       </CardContent>
 
-      <CardFooter className="block xl:flex gap-x-2 w-full space-y-1 items-center">
-        <div className="flex flex-1 items-center gap-x-2">
+      <CardFooter
+        className={`block xl:flex items-center flex-col xl:flex-row justify-between gap-x-2 w-full space-y-2 xl:space-y-0 items-center ${isCollapsed && "lg:flex lg:!flex-row lg:space-y-0"}`}
+      >
+        <div
+          className={`flex lg:w-full xl:w-auto xl:min-w-44 3xl:min-w-48 items-center gap-x-2`}
+        >
           <label
             htmlFor={`status-select-${task.id}`}
             className="hidden 2xl:block text-sm font-medium shrink-0"
@@ -217,11 +223,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               className="flex-1 xl:flex-0 border-primary text-primary hover:bg-primary hover:text-primary-foreground dark:hover:bg-primary hover:border-primary dark:hover:text-primary-foreground"
             >
               <Edit />
-              <span
-                className={`hidden xs:block ${!isCollapsed && "lg:hidden"} xl:hidden text-sm`}
-              >
-                Edit
-              </span>
+              <span className={`hidden xs:block lg:hidden text-sm`}>Edit</span>
             </Button>
           )}
           {setDialogDelete && (
@@ -231,9 +233,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               className="flex-1 xl:flex-0 border-destructive text-destructive hover:bg-destructive/40 hover:text-destructive-foreground dark:hover:bg-destructive/50 hover:border-destructive-foreground dark:hover:text-destructive-foreground"
             >
               <Trash />
-              <span
-                className={`hidden xs:block ${!isCollapsed && "lg:hidden"} xl:hidden text-sm`}
-              >
+              <span className={`hidden xs:block lg:hidden text-sm`}>
                 Delete
               </span>
             </Button>

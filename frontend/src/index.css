@@ -51,6 +51,7 @@
 
   --breakpoint-xxs: 20rem;
   --breakpoint-xs: 30rem;
+  --breakpoint-3xl: 108rem;
 }
 
 :root {

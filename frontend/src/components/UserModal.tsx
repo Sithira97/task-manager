@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { TaskCardExtraSmall } from "./TaskCard";
 
 interface UserCardProps {
-  user: TeamUser;
+  user?: TeamUser;
   isOpen: boolean;
   onClose: () => void;
 }

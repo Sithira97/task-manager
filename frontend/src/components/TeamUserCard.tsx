@@ -47,7 +47,7 @@ const TeamUserCard: React.FC<UserCardProps> = ({ user, setModalView }) => {
       <CardHeader
         className="cursor-pointer"
         onClick={() =>
-          setModalView && setModalView({ open: true, userId: user.id })
+          setModalView && setModalView({ open: true, userId: user.id ?? 0 })
         }
       >
         <div className="flex items-center gap-3 min-w-0">

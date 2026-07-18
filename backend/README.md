@@ -1,10 +1,10 @@
-# ⚙️ Task Manager Backend
+# Task Manager Backend
 
 A robust, secure, and production-ready RESTful API server powering the Team Task Management System. Built using Node.js, Express, and TypeScript, it utilizes MySQL for relational data persistence, implements JWT-based state protection, and supports comprehensive unit/integration tests.
 
 ---
 
-## 🛠️ Architecture & Core Components
+## Architecture & Core Components
 
 - **Express v5 Routing**: Designed around modular routing layers mapping Auth, Tasks, and Team resources.
 - **JWT Protection Middleware**: Implements [auth.ts](file:///Volumes/Data/Work/task-manager/backend/src/middleware/auth.ts) middleware for authentication, parsing bearer tokens, and attaching user details to requests.
@@ -14,7 +14,7 @@ A robust, secure, and production-ready RESTful API server powering the Team Task
 
 ---
 
-## ⚙️ Environment Configurations
+## Environment Configurations
 
 Configure settings by copying [backend/.env.example](file:///Volumes/Data/Work/task-manager/backend/.env.example) to `.env`:
 
@@ -33,7 +33,7 @@ Configure settings by copying [backend/.env.example](file:///Volumes/Data/Work/t
 
 ---
 
-## 🗄️ Database Setup
+## Database Setup
 
 The database requires MySQL. Migrations and seeds are compiled dynamically using `tsx` at runtime:
 
@@ -52,9 +52,9 @@ The database requires MySQL. Migrations and seeds are compiled dynamically using
 
 ---
 
-## 📡 API Reference & Payload Specifications
+## API Reference & Payload Specifications
 
-### 🔑 Authentication & Users
+### Authentication & Users
 
 #### 1. Register User
 
@@ -148,7 +148,7 @@ The database requires MySQL. Migrations and seeds are compiled dynamically using
 
 ---
 
-### 📋 Tasks
+### Tasks
 
 #### 1. Create a Task
 
@@ -235,7 +235,7 @@ The database requires MySQL. Migrations and seeds are compiled dynamically using
 
 ---
 
-### 👥 Teams
+### Teams
 
 #### 1. Get Collaborator and Lead Tasks Grouped by User
 
@@ -256,7 +256,7 @@ The database requires MySQL. Migrations and seeds are compiled dynamically using
 
 ---
 
-## 🧪 Testing and Quality Control
+## Testing and Quality Control
 
 The backend includes automated integration test suites built on top of Node's built-in testing harness and `supertest`.
 
@@ -281,7 +281,7 @@ The backend includes automated integration test suites built on top of Node's bu
 
 ---
 
-## 📁 Key Files & Directories
+## Key Files & Directories
 
 - [server.ts](./src/server.ts) : Entrypoint starting Express server listener.
 - [app.ts](./src/app.ts) : Main application logic registering routing tables.

@@ -9,7 +9,7 @@ const app: Express = express();
 // Configure CORS to allow interactions from frontend server
 app.use(
   cors({
-    origin: "*", // Only in development
+    origin: ["159.223.68.222","localhost"],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),

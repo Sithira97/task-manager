@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import type { User, AuthContextType } from "../types";
+import type { User, AuthContextType } from "@/types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -38,10 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok && response.status > 500) {
-        throw new Error("Login failed");
-      }
-
       const data = await response.json();
 
       if (!response.ok) {
@@ -54,8 +50,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem("auth_user", JSON.stringify(data.user));
       setIsAdmin(data.user.role === "admin");
       return true;
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
       return false;
     }
   };
@@ -85,8 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem("auth_user", JSON.stringify(data.user));
       setIsAdmin(data.user.role === "admin");
       return true;
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
       return false;
     }
   };

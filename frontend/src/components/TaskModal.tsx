@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import type { Task, User } from "../types";
+import type { Task, User } from "@/types";
 import { Button } from "@/components/ui/button";
-import { useTasks } from "../context/TaskContext";
-import { useAuth } from "../context/AuthContext";
-import { cleanCapitalize } from "../lib/words";
+import { useTasks } from "@/context/TaskContext";
+import { useAuth } from "@/context/AuthContext";
+import { cleanCapitalize } from "@/lib/words";
+import { STATUS_OPTIONS } from "@/lib/tasks";
 import {
   Dialog,
   DialogContent,
@@ -32,9 +33,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Field, FieldLabel } from "./ui/field";
-import { DatePickerInput } from "./ui/date-picker";
+} from "@/components/ui/select";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { DatePickerInput } from "@/components/ui/date-picker";
 import { formatDate } from "date-fns";
 
 interface TaskModalProps {
@@ -44,11 +45,7 @@ interface TaskModalProps {
   task?: Task;
 }
 
-const statusValues = [
-  { value: "open", label: "Open" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "done", label: "Done" },
-];
+const statusValues = STATUS_OPTIONS;
 
 const priorityValues = [
   { value: "low", label: "Low" },
@@ -85,8 +82,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setPriority(task.priority);
       setStatus(task.status);
       setDueDate(formatDate(task.due_date, "yyyy-MM-dd"));
-      if (task.assignees && task.assignees.length > 0 ){
-        setAssignedTo(task.assignees.map((userTask: User) => userTask.id ?? userTask.user_id ?? ""));
+      if (task.assignees && task.assignees.length > 0) {
+        setAssignedTo(
+          task.assignees.map(
+            (userTask: User) => userTask.id ?? userTask.user_id ?? "",
+          ),
+        );
       }
     } else {
       // Clear fields for creation mode
@@ -98,7 +99,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setAssignedTo([]);
     }
     setFormError(null);
-  }, [task, isOpen]);
+  }, [task, isOpen, isEdit]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -132,7 +133,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       priority,
       status,
       due_date: formatDate(dueDate, "yyyy-MM-dd"),
-      assignees: assignedTo as any,
+      assignees: assignedTo as number[],
     };
 
     let success = false;
@@ -196,7 +197,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 items={statusValues}
                 value={status}
-                onValueChange={(value)=> value && setStatus(value)}
+                onValueChange={(value) => value && setStatus(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
@@ -218,7 +219,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 items={priorityValues}
                 value={priority}
-                onValueChange={(value)=>value && setPriority(value)}
+                onValueChange={(value) => value && setPriority(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Priority" />
@@ -261,9 +262,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   {(values) => (
                     <>
                       {values.map((value: number) => (
-                        <ComboboxChip key={(value ?? 1) + Math.random()}>
+                        <ComboboxChip key={value}>
                           {cleanCapitalize(
-                           users.find((user) => user.id === value)?.username ?? ""
+                            users.find((user) => user.id === value)?.username ??
+                              "",
                           )}
                         </ComboboxChip>
                       ))}
@@ -277,7 +279,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <ComboboxList>
                   {(item: User) => (
                     <ComboboxItem
-                      key={(item.id ?? 1) + Math.random()}
+                      key={item.id}
                       value={item.id}
                       disabled={item.id === user?.id}
                     >

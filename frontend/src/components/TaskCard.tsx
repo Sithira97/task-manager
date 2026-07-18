@@ -6,8 +6,8 @@ import {
   Clock,
   PlayCircle,
 } from "lucide-react";
-import type { Task, User } from "../types";
-import { useTasks } from "../context/TaskContext";
+import type { Task, User } from "@/types";
+import { useTasks } from "@/context/TaskContext";
 import {
   Card,
   CardTitle,
@@ -22,7 +22,7 @@ import {
   AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
-} from "./ui/avatar";
+} from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -30,15 +30,20 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Badge } from "./reui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+} from "@/components/ui/select";
+import { Badge } from "@/components/reui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cleanCapitalize, getInitials } from "@/lib/words";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
 import { getGradientClass } from "@/lib/colors";
 import { formatDate } from "date-fns";
+import { STATUS_OPTIONS } from "@/lib/tasks";
 
 interface TaskCardProps {
   task: Task;
@@ -52,11 +57,26 @@ interface TaskCardProps {
     React.SetStateAction<{ open: boolean; taskId: number }>
   >;
 }
-const statusValues = [
-  { value: "open", label: "Open" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "done", label: "Done" },
-];
+const statusValues = STATUS_OPTIONS;
+
+const DueDateBadge: React.FC<{
+  dueDate: string;
+  status: string;
+  prefix?: string;
+}> = ({ dueDate, status, prefix }) => {
+  const isOverdue = status !== "done" && Date.parse(dueDate) < Date.now();
+  return (
+    <div
+      className={`flex self-end items-center gap-1.5${isOverdue ? " text-red-500 text-end" : ""}`}
+    >
+      <Calendar size={14} />
+      <time className="text-xs whitespace-nowrap tabular-nums">
+        {prefix && `${prefix} `}
+        {formatDate(dueDate, "dd MMM yyyy")}
+      </time>
+    </div>
+  );
+};
 
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
@@ -91,7 +111,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           }
         >
           <CardTitle
-            className={`line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status == "done" ? "line-through" : ""}`}
+            className={`line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status === "done" ? "line-through" : ""}`}
           >
             {task.title}
           </CardTitle>
@@ -166,22 +186,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 </Tooltip>
               )}
             </AvatarGroup>
-            {task.due_date &&
-            task.status !== "done" &&
-            Date.parse(task.due_date) < Date.now() ? (
-              <div className="flex self-end items-center gap-1.5 text-red-500 text-end">
-                <Calendar size={14} />
-                <time className="text-xs whitespace-nowrap tabular-nums">
-                  {formatDate(task.due_date, "dd MMM yyyy")}
-                </time>
-              </div>
-            ) : (
-              <div className="flex self-end  items-center gap-1.5">
-                <Calendar size={14} />
-                <time className="text-xs whitespace-nowrap tabular-nums">
-                  {formatDate(task.due_date, "dd MMM yyyy")}
-                </time>
-              </div>
+            {task.due_date && (
+              <DueDateBadge dueDate={task.due_date} status={task.status} />
             )}
           </div>
         </div>
@@ -276,7 +282,7 @@ export const TaskCardSmall: React.FC<TaskCardProps> = ({
           }
         >
           <CardTitle
-            className={`line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status == "done" ? "line-through" : ""}`}
+            className={`line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status === "done" ? "line-through" : ""}`}
           >
             {task.title}
           </CardTitle>
@@ -351,22 +357,8 @@ export const TaskCardSmall: React.FC<TaskCardProps> = ({
                 </Tooltip>
               )}
             </AvatarGroup>
-            {task.due_date &&
-            task.status !== "done" &&
-            Date.parse(task.due_date) < Date.now() ? (
-              <div className="flex self-end items-center gap-1.5 text-red-500 text-end">
-                <Calendar size={14} />
-                <time className="text-xs whitespace-nowrap tabular-nums">
-                  {formatDate(task.due_date, "dd MMM yyyy")}
-                </time>
-              </div>
-            ) : (
-              <div className="flex self-end  items-center gap-1.5">
-                <Calendar size={14} />
-                <time className="text-xs whitespace-nowrap tabular-nums">
-                  {formatDate(task.due_date, "dd MMM yyyy")}
-                </time>
-              </div>
+            {task.due_date && (
+              <DueDateBadge dueDate={task.due_date} status={task.status} />
             )}
           </div>
         </div>
@@ -404,7 +396,7 @@ export const TaskCardExtraSmall: React.FC<TaskCardProps> = ({
           <div className="flex items-center gap-2 min-w-0">
             {renderTaskStatusIcon(task.status)}
             <CardTitle
-              className={`line-clamp-1 text-sm font-medium transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status == "done" ? "line-through" : ""}`}
+              className={`line-clamp-1 text-sm font-medium transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status === "done" ? "line-through" : ""}`}
             >
               {task.title}
             </CardTitle>
@@ -430,22 +422,12 @@ export const TaskCardExtraSmall: React.FC<TaskCardProps> = ({
 
         <div className="flex flex-col mt-auto">
           <div className="flex flex-row lg:flex-col xl:flex-row justify-between items-end lg:items-start xl:items-end text-sm text-muted-foreground">
-            {task.due_date &&
-            task.status !== "done" &&
-            Date.parse(task.due_date) < Date.now() ? (
-              <div className="flex self-end items-center gap-1.5 text-red-500 text-end">
-                <Calendar size={14} />
-                <time className="text-xs whitespace-nowrap tabular-nums">
-                  Due {formatDate(task.due_date, "dd MMM yyyy")}
-                </time>
-              </div>
-            ) : (
-              <div className="flex self-end  items-center gap-1.5">
-                <Calendar size={14} />
-                <time className="text-xs whitespace-nowrap tabular-nums">
-                  Due {formatDate(task.due_date, "dd MMM yyyy")}
-                </time>
-              </div>
+            {task.due_date && (
+              <DueDateBadge
+                dueDate={task.due_date}
+                status={task.status}
+                prefix="Due"
+              />
             )}
           </div>
         </div>

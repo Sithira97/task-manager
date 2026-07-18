@@ -43,8 +43,7 @@ const Register: React.FC<AuthProps> = ({ onToggleAuth }) => {
     }
 
     setSubmitting(true);
-    const success = await registerUser(username, email, password);
-    console.log("Registration success:", success);
+    await registerUser(username, email, password);
     setSubmitting(false);
   };
 

@@ -19,7 +19,7 @@ const MobileNav: React.FC<{
             className={`grid ${isAdmin ? "grid-cols-4" : "grid-cols-3"} w-full text-foreground`}
           >
             {navItem.map((item) => (
-              <li className="flex-1">
+              <li key={item.view} className="flex-1">
                 <button
                   onClick={() => setCurrentView(item.view as Route)}
                   className={`flex w-full flex-col items-center gap-2 px-6 py-2 hover:bg-accent ${currentView === item.view ? "text-primary bg-primary/5 border-t-4 border-primary" : ""}`}

@@ -14,6 +14,15 @@ export interface Task {
   updated_at: string;
   deleted_at?: string | null;
 }
+
+export interface TaskInput {
+  title?: string;
+  description?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  due_date?: string;
+  assignees?: number[];
+}
 export interface Team {
   id: number;
   title: string;
@@ -34,7 +43,7 @@ export interface TeamUser extends User {
 }
 
 export interface User {
-  id?: number;
+  id: number;
   user_id?: number;
   username: string;
   email?: string;
@@ -93,10 +102,10 @@ export interface TaskContextType {
   setTimeframeFilter: (timeframe: string) => void;
   fetchTasks: () => Promise<void>;
   fetchUserTeams: () => Promise<void>;
-  createTask: (taskData: Partial<Task>) => Promise<boolean>;
+  createTask: (taskData: TaskInput) => Promise<boolean>;
   updateTaskOptimistic: (
     taskId: number,
-    updates: Partial<Task>,
+    updates: TaskInput,
   ) => Promise<boolean>;
   updateTaskStatus: (taskId: number, status: TaskStatus) => Promise<boolean>;
   deleteTask: (taskId: number) => Promise<boolean>;

@@ -13,8 +13,8 @@ export const getPriorityClasses = (priority: "low" | "medium" | "high") => {
   }
 };
 
-export const getStatusClasses = (priority: "open" | "in_progress" | "done") => {
-  switch (priority) {
+export const getStatusClasses = (status: "open" | "in_progress" | "done") => {
+  switch (status) {
     case "open":
       return "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]";
     case "in_progress":

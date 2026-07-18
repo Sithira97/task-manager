@@ -1,5 +1,6 @@
-import type { TeamUser, Task } from "../types";
-import { cleanCapitalize, getInitials } from "../lib/words";
+import type { Task, TeamUser } from "@/types";
+import { filterValidTasks } from "@/lib/tasks";
+import { cleanCapitalize, getInitials } from "@/lib/words";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Crown,
@@ -16,9 +17,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { TaskCardExtraSmall } from "./TaskCard";
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaskCardExtraSmall } from "@/components/TaskCard";
 
 interface UserCardProps {
   user?: TeamUser;
@@ -28,20 +29,8 @@ interface UserCardProps {
 
 const UserModal: React.FC<UserCardProps> = ({ isOpen, onClose, user }) => {
   if (!user) return null;
-  const Lead = (user.tasks.lead || []).filter(
-    (t): t is Task =>
-      t !== null &&
-      typeof t === "object" &&
-      t.id !== null &&
-      t.id !== undefined,
-  );
-  const Collab = (user.tasks.collaborate || []).filter(
-    (t): t is Task =>
-      t !== null &&
-      typeof t === "object" &&
-      t.id !== null &&
-      t.id !== undefined,
-  );
+  const Lead = filterValidTasks(user.tasks.lead);
+  const Collab = filterValidTasks(user.tasks.collaborate);
 
   const totalTasksCount = Lead.length + Collab.length;
 

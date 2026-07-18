@@ -5,9 +5,10 @@ import {
   ClipboardList,
   AlertCircle,
 } from "lucide-react";
-import { cleanCapitalize } from "../lib/words";
-import { useAuth } from "../context/AuthContext";
-import { useTasks } from "../context/TaskContext";
+import { cleanCapitalize } from "@/lib/words";
+import { useAuth } from "@/context/AuthContext";
+import { useTasks } from "@/context/TaskContext";
+import { isSameDay } from "@/lib/calendar";
 import {
   Card,
   CardContent,
@@ -48,14 +49,6 @@ const Dashboard: React.FC = () => {
       days.push(d);
     }
     return days;
-  };
-
-  const isSameDay = (d1: Date, d2: Date) => {
-    return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate()
-    );
   };
 
   const parseTaskDate = (dateStr: string) => {

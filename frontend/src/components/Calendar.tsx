@@ -4,12 +4,12 @@ import {
   ChevronRight,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import type { Task } from "../types";
-import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "../lib/calender";
-import { getStatusClasses, getStatusIcon } from "../lib/enums";
+import type { Task } from "@/types";
+import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "@/lib/calendar";
+import { getStatusClasses, getStatusIcon } from "@/lib/enums";
 import { lazy, Suspense } from "react";
 import { formatDate } from "date-fns";
-import { TaskCardSmall } from "./TaskCard";
+import { TaskCardSmall } from "@/components/TaskCard";
 
 const TaskView = lazy(() => import("./TaskView"));
 
@@ -149,7 +149,10 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
             <thead>
               <tr className="bg-muted/50 border-b border-border">
                 {daysOfWeek.map((day) => (
-                  <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
+                  <th
+                    key={day}
+                    className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7"
+                  >
                     {day}
                   </th>
                 ))}
@@ -200,12 +203,12 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
                             return (
                               <div
                                 key={task.id}
-                                className={`${task.status == "done" ? "line-through" : ""} w-full text-[10px] px-1.5 py-0.5 rounded border font-medium truncate flex items-center gap-1 ${getStatusClasses(
+                                className={`${task.status === "done" ? "line-through" : ""} w-full text-[10px] px-1.5 py-0.5 rounded border font-medium truncate flex items-center gap-1 ${getStatusClasses(
                                   task.status,
                                 )}`}
                               >
                                 <span
-                                  className={`shrink-0 ${task.status == "in_progress" || task.status == "done" ? "animate-pulse" : ""}`}
+                                  className={`shrink-0 ${task.status === "in_progress" || task.status === "done" ? "animate-pulse" : ""}`}
                                 >
                                   <StatusIcon size={12} />
                                 </span>

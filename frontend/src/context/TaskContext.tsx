@@ -5,13 +5,14 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { useAuth } from "./AuthContext.jsx";
+import { useAuth } from "@/context/AuthContext";
 import type {
   Task,
   TaskContextType,
+  TaskInput,
   TaskStatus,
   TeamUser,
-} from "../types/index.js";
+} from "@/types/index.js";
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
@@ -65,8 +66,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       setTasks(data.tasks);
-    } catch (err: any) {
-      setError(err.message || "Error loading tasks");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error loading tasks");
     } finally {
       setLoading(false);
     }
@@ -115,7 +116,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     setTimeframeFilterState(tf);
   };
 
-  const createTask = async (taskData: Partial<Task>): Promise<boolean> => {
+  const createTask = async (taskData: TaskInput): Promise<boolean> => {
     if (!token) return false;
     setError(null);
     try {
@@ -136,23 +137,25 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setTasks((prev) => [data.task, ...prev]);
       return true;
-    } catch (err: any) {
-      setError(err.message || "Error creating task");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error creating task");
       return false;
     }
   };
 
   const updateTaskOptimistic = async (
     taskId: number,
-    updates: Partial<Task>,
+    updates: TaskInput,
   ): Promise<boolean> => {
     if (!token) return false;
 
     const originalTask = tasks.find((t) => t.id === taskId);
     if (!originalTask) return false;
 
+    const { assignees, ...otherUpdates } = updates;
+
     setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t)),
+      prevTasks.map((t) => (t.id === taskId ? { ...t, ...otherUpdates } : t)),
     );
 
     try {
@@ -175,14 +178,14 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         prevTasks.map((t) => (t.id === taskId ? data.task : t)),
       );
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unable to update task.";
       console.warn(
         "Optimistic Update Failed. Rolling back task changes.",
-        err.message,
+        message,
       );
-      alert(
-        `Sync Failure: ${err.message || "Unable to update task."} Reverting layout.`,
-      );
+      setError(`Sync Failure: ${message} Reverting layout.`);
 
       setTasks((prevTasks) =>
         prevTasks.map((t) => (t.id === taskId ? originalTask : t)),
@@ -221,22 +224,18 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error(data.error || "Failed to update task status");
       }
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update task");
-      }
-
       setTasks((prevTasks) =>
         prevTasks.map((t) => (t.id === taskId ? data.task : t)),
       );
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unable to update task.";
       console.warn(
         "Optimistic Update Failed. Rolling back task changes.",
-        err.message,
+        message,
       );
-      alert(
-        `Sync Failure: ${err.message || "Unable to update task."} Reverting layout.`,
-      );
+      setError(`Sync Failure: ${message} Reverting layout.`);
 
       setTasks((prevTasks) =>
         prevTasks.map((t) => (t.id === taskId ? originalTask : t)),
@@ -262,8 +261,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       return true;
-    } catch (err: any) {
-      setError(err.message || "Error deleting task");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error deleting task");
       return false;
     }
   };
@@ -285,8 +284,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       return true;
-    } catch (err: any) {
-      setError(err.message || "Error deleting task");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error deleting task");
       return false;
     }
   };

@@ -5,9 +5,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { useTasks } from "../context/TaskContext";
+import { useTasks } from "@/context/TaskContext";
 import { User } from "lucide-react";
-import type { Task } from "../types";
+import { filterValidTasks } from "@/lib/tasks";
 import { useAuth } from "@/context/AuthContext";
 import { useMemo, useState } from "react";
 import {
@@ -45,20 +45,8 @@ const Teams: React.FC = () => {
     if (!user || !userTeam) return [];
 
     return userTeam.filter((teamUser) => {
-      const Lead = (teamUser.tasks?.lead || []).filter(
-        (t): t is Task =>
-          t !== null &&
-          typeof t === "object" &&
-          t.id !== null &&
-          t.id !== undefined,
-      );
-      const Collab = (teamUser.tasks?.collaborate || []).filter(
-        (t): t is Task =>
-          t !== null &&
-          typeof t === "object" &&
-          t.id !== null &&
-          t.id !== undefined,
-      );
+      const Lead = filterValidTasks(teamUser.tasks?.lead);
+      const Collab = filterValidTasks(teamUser.tasks?.collaborate);
 
       if (filter === "lead") return Lead.length > 0;
       if (filter === "collaborate") return Collab.length > 0;
@@ -128,7 +116,7 @@ const Teams: React.FC = () => {
           <EmptyContent className="gap-0">
             <EmptyTitle>No teams found</EmptyTitle>
             <EmptyDescription>
-              {user && user.role == "admin"
+              {user && user.role === "admin"
                 ? "Create a Task to add a team!"
                 : "You will be added to a team when assigned to a task."}
             </EmptyDescription>

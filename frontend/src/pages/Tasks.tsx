@@ -325,7 +325,7 @@ const Tasks: React.FC = () => {
               }
             >
               {PRIORITY_FILTER.map((priority) => (
-                <Field orientation="horizontal">
+                <Field key={priority.value} orientation="horizontal">
                   <RadioGroupItem value={priority.value} id={priority.value} />
                   <FieldLabel htmlFor={priority.value}>
                     {priority.label}
@@ -372,7 +372,7 @@ const Tasks: React.FC = () => {
               }
             >
               {TIMEFRAME_FILTER.map((timeframe) => (
-                <Field orientation="horizontal">
+                <Field key={timeframe.value} orientation="horizontal">
                   <RadioGroupItem
                     value={timeframe.value}
                     id={timeframe.value}
@@ -430,7 +430,7 @@ const Tasks: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:flex-row sm:justify-between">
-            {user && user.role == "admin" && (
+            {user && user.role === "admin" && (
               <AlertDialogAction
                 onClick={() => {
                   forceDeleteTask(dialogDelete.taskId);
@@ -459,7 +459,7 @@ const Tasks: React.FC = () => {
                 >
                   Delete
                 </AlertDialogAction>
-                {user && user.role == "admin" && (
+                {user && user.role === "admin" && (
                   <AlertDialogAction
                     onClick={() => {
                       forceDeleteTask(dialogDelete.taskId);

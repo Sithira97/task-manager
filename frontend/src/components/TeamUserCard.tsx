@@ -1,5 +1,6 @@
-import type { TeamUser, Task } from "../types";
-import { cleanCapitalize, getInitials } from "../lib/words";
+import type { TeamUser } from "@/types";
+import { filterValidTasks } from "@/lib/tasks";
+import { cleanCapitalize, getInitials } from "@/lib/words";
 import {
   Card,
   CardAction,
@@ -27,27 +28,17 @@ interface UserCardProps {
 }
 
 const TeamUserCard: React.FC<UserCardProps> = ({ user, setModalView }) => {
-  const Lead = (user.tasks.lead || []).filter(
-    (t): t is Task =>
-      t !== null &&
-      typeof t === "object" &&
-      t.id !== null &&
-      t.id !== undefined,
-  );
-  const Collab = (user.tasks.collaborate || []).filter(
-    (t): t is Task =>
-      t !== null &&
-      typeof t === "object" &&
-      t.id !== null &&
-      t.id !== undefined,
-  );
+  const Lead = filterValidTasks(user.tasks.lead);
+  const Collab = filterValidTasks(user.tasks.collaborate);
 
   return (
     <Card>
       <CardHeader
         className="cursor-pointer"
         onClick={() =>
-          setModalView && setModalView({ open: true, userId: user.id ?? 0 })
+          setModalView &&
+          user.id !== undefined &&
+          setModalView({ open: true, userId: user.id })
         }
       >
         <div className="flex items-center gap-3 min-w-0">

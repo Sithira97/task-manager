@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const FILTER_OPTIONS = [
   { value: "all", label: "All Teams" },
@@ -28,12 +29,13 @@ const FILTER_OPTIONS = [
 const Teams: React.FC = () => {
   const { teams } = useTasks();
   const { user } = useAuth();
+  const { open } = useSidebar();
 
   const [filter, setFilter] = useState<string>("all");
 
   const displayedTeams = useMemo(() => {
     if (!user || !teams) return [];
-    
+
     return teams.filter((team) => {
       const leadId = team.team_lead?.id || team.team_lead?.user_id;
       const isLead = leadId === user.id;
@@ -51,9 +53,9 @@ const Teams: React.FC = () => {
     <main className="flex-1 flex flex-col overflow-y-auto mb-16 sm:mb-0 p-3 xs:p-4 sm:p-5">
       <div className="flex items-center justify-between mb-4">
         <h1 className="font-bold text-xl md:text-2xl text-primary">Teams</h1>
-        
+
         {teams && teams.length > 0 && (
-          <div className="w-40">
+          <div>
             <Select
               items={FILTER_OPTIONS}
               value={filter}
@@ -79,7 +81,9 @@ const Teams: React.FC = () => {
       {teams && teams.length > 0 ? (
         <div className="fade-in">
           {displayedTeams.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
+            <div
+              className={`grid grid-cols-1 ${open ? "sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"} 2xl:grid-cols-4 gap-2 max-w-[96rem] mx-auto`}
+            >
               {displayedTeams.map((team) => (
                 <TeamCard key={team.id} team={team} />
               ))}
@@ -88,7 +92,9 @@ const Teams: React.FC = () => {
             <Empty className="gap-0 mt-8">
               <EmptyContent className="gap-0">
                 <EmptyTitle>No teams match your filter</EmptyTitle>
-                <EmptyDescription>Try changing the filter to see other teams.</EmptyDescription>
+                <EmptyDescription>
+                  Try changing the filter to see other teams.
+                </EmptyDescription>
               </EmptyContent>
             </Empty>
           )}

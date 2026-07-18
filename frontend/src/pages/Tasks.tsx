@@ -47,7 +47,6 @@ import { Badge } from "@/components/reui/badge";
 import { useAuth } from "@/context/AuthContext";
 import TaskModal from "@/components/TaskModal";
 import TaskView from "@/components/TaskView";
-
 import {
   Field,
   FieldLabel,
@@ -322,7 +321,9 @@ const Tasks: React.FC = () => {
               {PRIORITY_FILTER.map((priority) => (
                 <Field orientation="horizontal">
                   <RadioGroupItem value={priority.value} id={priority.value} />
-                  <FieldLabel>{priority.label}</FieldLabel>
+                  <FieldLabel htmlFor={priority.value}>
+                    {priority.label}
+                  </FieldLabel>
                 </Field>
               ))}
             </RadioGroup>
@@ -360,10 +361,15 @@ const Tasks: React.FC = () => {
                 setPriorityFilter(val === "all" ? "" : val)
               }
             >
-              {TIMEFRAME_FILTER.map((priority) => (
+              {TIMEFRAME_FILTER.map((timeframe) => (
                 <Field orientation="horizontal">
-                  <RadioGroupItem value={priority.value} id={priority.value} />
-                  <FieldLabel>{priority.label}</FieldLabel>
+                  <RadioGroupItem
+                    value={timeframe.value}
+                    id={timeframe.value}
+                  />
+                  <FieldLabel htmlFor={timeframe.value}>
+                    {timeframe.label}
+                  </FieldLabel>
                 </Field>
               ))}
             </RadioGroup>

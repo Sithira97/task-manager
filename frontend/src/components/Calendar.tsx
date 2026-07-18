@@ -8,9 +8,12 @@ import type { Task } from "../types";
 import { getDaysInMonth, getFirstDayOfMonth, isSameDay } from "../lib/calender";
 import { getStatusClasses, getStatusIcon } from "../lib/enums";
 import { lazy, Suspense } from "react";
+import { formatDate } from "date-fns";
+import { TaskCardSmall } from "./TaskCard";
 
-const TaskCard = lazy(() => import("./TaskCard"));
 const TaskView = lazy(() => import("./TaskView"));
+
+const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -96,7 +99,6 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
     setSelectedDate(now);
   };
 
-  const monthName = currentDate.toLocaleString("en-US", { month: "long" });
   const today = new Date();
   const selectedTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
@@ -110,7 +112,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
             </div>
             <div>
               <h2 className="text-2xl font-black text-primary">
-                {monthName} {year}
+                {formatDate(currentDate, "MMMM yyyy")}
               </h2>
               <p className="text-xs text-muted-foreground">
                 {tasks.length} total tasks scheduled
@@ -146,27 +148,11 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
           <table className="table-fixed w-full border-collapse">
             <thead>
               <tr className="bg-muted/50 border-b border-border">
-                <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
-                  Mon
-                </th>
-                <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
-                  Tue
-                </th>
-                <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
-                  Wed
-                </th>
-                <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
-                  Thu
-                </th>
-                <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
-                  Fri
-                </th>
-                <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
-                  Sat
-                </th>
-                <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
-                  Sun
-                </th>
+                {daysOfWeek.map((day) => (
+                  <th className="py-3 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/7">
+                    {day}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border bg-card">
@@ -218,7 +204,9 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
                                   task.status,
                                 )}`}
                               >
-                                <span className="shrink-0">
+                                <span
+                                  className={`shrink-0 ${task.status == "in_progress" || task.status == "done" ? "animate-pulse" : ""}`}
+                                >
                                   <StatusIcon size={12} />
                                 </span>
                                 <span className="truncate line-clamp-1 hidden sm:block">
@@ -249,11 +237,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
                 <h3 className="font-black text-lg">
-                  {selectedDate.toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {formatDate(selectedDate, "EEE, MMMM dd")}
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   Tasks for this day
@@ -274,7 +258,7 @@ const Calendar: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
                 selectedTasks.map((task) => (
                   <div key={task.id}>
                     <Suspense fallback={null}>
-                      <TaskCard task={task} setModalView={setModalView} />
+                      <TaskCardSmall task={task} setModalView={setModalView} />
                     </Suspense>
                   </div>
                 ))

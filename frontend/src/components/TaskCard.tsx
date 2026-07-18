@@ -1,4 +1,11 @@
-import { Calendar, Crown, Edit, Trash } from "lucide-react";
+import {
+  Calendar,
+  Edit,
+  Trash,
+  CheckCircle2,
+  Clock,
+  PlayCircle,
+} from "lucide-react";
 import type { Task, User } from "../types";
 import { useTasks } from "../context/TaskContext";
 import {
@@ -30,6 +37,8 @@ import { cleanCapitalize, getInitials } from "@/lib/words";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
+import { getGradientClass } from "@/lib/colors";
+import { formatDate } from "date-fns";
 
 interface TaskCardProps {
   task: Task;
@@ -49,15 +58,6 @@ const statusValues = [
   { value: "done", label: "Done" },
 ];
 
-const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-  return new Date(dateString).toLocaleDateString(undefined, options);
-};
-
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
   setDialogDelete,
@@ -70,7 +70,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const { user } = useAuth();
 
   const handleStatusChange = async (newStatus: Task["status"] | null) => {
-    if (newStatus){
+    if (newStatus) {
       await updateTaskStatus(task.id, newStatus);
     }
   };
@@ -121,12 +121,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 <Tooltip>
                   <TooltipTrigger>
                     <Avatar>
-                      <AvatarFallback>
+                      <AvatarFallback
+                        className={`bg-gradient-to-br ${getGradientClass(task.created_by.username)} text-sm  text-white`}
+                      >
                         {getInitials(task.created_by.username)}
                       </AvatarFallback>
-                      <span className="absolute left-0 bottom-0">
-                        <Crown className="size-3 fill-yellow-500 text-yellow-500" />
-                      </span>
                     </Avatar>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -138,7 +137,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 <Tooltip key={idx}>
                   <TooltipTrigger>
                     <Avatar size="sm">
-                      <AvatarFallback>
+                      <AvatarFallback
+                        className={`bg-gradient-to-br ${getGradientClass(assignee.username)} text-sm  text-white`}
+                      >
                         {getInitials(assignee.username)}
                       </AvatarFallback>
                     </Avatar>
@@ -171,14 +172,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
               <div className="flex self-end items-center gap-1.5 text-red-500 text-end">
                 <Calendar size={14} />
                 <time className="text-xs whitespace-nowrap tabular-nums">
-                  {formatDate(task.due_date)}
+                  {formatDate(task.due_date, "dd MMM yyyy")}
                 </time>
               </div>
             ) : (
               <div className="flex self-end  items-center gap-1.5">
                 <Calendar size={14} />
                 <time className="text-xs whitespace-nowrap tabular-nums">
-                  {formatDate(task.due_date)}
+                  {formatDate(task.due_date, "dd MMM yyyy")}
                 </time>
               </div>
             )}
@@ -253,5 +254,202 @@ const TaskCard: React.FC<TaskCardProps> = ({
     </Card>
   );
 };
-
 export default TaskCard;
+
+export const TaskCardSmall: React.FC<TaskCardProps> = ({
+  task,
+  setModalView,
+}) => {
+  const assigneeList = task.assignees?.filter(
+    (assignee) => assignee.username !== task.created_by?.username,
+  );
+  const overflowAssignees =
+    assigneeList && assigneeList.length > 2 && assigneeList.slice(2);
+
+  return (
+    <Card className="gap-2.5">
+      <CardContent className="flex flex-col gap-2 min-w-64 lg:min-w-auto max-w lg:w-auto">
+        <CardHeader
+          className="px-0 cursor-pointer group hover:bg-muted/10 transition-colors -mx-6 -mt-6 px-6 pt-6 pb-2 rounded-t-lg"
+          onClick={() =>
+            setModalView && setModalView({ open: true, taskId: task.id })
+          }
+        >
+          <CardTitle
+            className={`line-clamp-1 text-sm font-medium group-hover:text-primary transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status == "done" ? "line-through" : ""}`}
+          >
+            {task.title}
+          </CardTitle>
+          <CardDescription className="text-muted-foreground line-clamp-1 text-sm">
+            {task.description}
+          </CardDescription>
+          <CardAction>
+            <Badge
+              variant={
+                task.priority === "high"
+                  ? "destructive-light"
+                  : task.priority === "medium"
+                    ? "warning-light"
+                    : "success-light"
+              }
+              className="pointer-events-none h-5 shrink-0 rounded-sm px-1.5 text-xs capitalize"
+            >
+              {task.priority}
+            </Badge>
+          </CardAction>
+        </CardHeader>
+
+        <div className="flex flex-col pt-3 border-t border-border mt-auto">
+          <div className="flex flex-row lg:flex-col xl:flex-row justify-between items-end lg:items-start xl:items-end text-sm text-muted-foreground">
+            <AvatarGroup className="flex justify-end items-end">
+              {task.created_by && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Avatar>
+                      <AvatarFallback
+                        className={`bg-gradient-to-br ${getGradientClass(task.created_by.username)} text-sm  text-white`}
+                      >
+                        {getInitials(task.created_by.username)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {cleanCapitalize(task.created_by.username)}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {assigneeList?.slice(0, 2).map((assignee: User, idx) => (
+                <Tooltip key={idx}>
+                  <TooltipTrigger>
+                    <Avatar size="sm">
+                      <AvatarFallback
+                        className={`bg-gradient-to-br ${getGradientClass(assignee.username)} text-sm  text-white`}
+                      >
+                        {getInitials(assignee.username)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {cleanCapitalize(assignee.username)}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+              {overflowAssignees && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <AvatarGroupCount>
+                      +{overflowAssignees.length}
+                    </AvatarGroupCount>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="flex flex-col gap-1">
+                    {overflowAssignees?.map((assignee) => (
+                      <p key={assignee.id}>
+                        {cleanCapitalize(assignee.username)}
+                      </p>
+                    ))}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </AvatarGroup>
+            {task.due_date &&
+            task.status !== "done" &&
+            Date.parse(task.due_date) < Date.now() ? (
+              <div className="flex self-end items-center gap-1.5 text-red-500 text-end">
+                <Calendar size={14} />
+                <time className="text-xs whitespace-nowrap tabular-nums">
+                  {formatDate(task.due_date, "dd MMM yyyy")}
+                </time>
+              </div>
+            ) : (
+              <div className="flex self-end  items-center gap-1.5">
+                <Calendar size={14} />
+                <time className="text-xs whitespace-nowrap tabular-nums">
+                  {formatDate(task.due_date, "dd MMM yyyy")}
+                </time>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export const TaskCardExtraSmall: React.FC<TaskCardProps> = ({
+  task,
+  setModalView,
+}) => {
+  const renderTaskStatusIcon = (status: string) => {
+    switch (status) {
+      case "done":
+        return <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />;
+      case "in_progress":
+        return (
+          <PlayCircle className="size-4 text-blue-500 shrink-0 animate-pulse" />
+        );
+      default:
+        return <Clock className="size-4 text-muted-foreground shrink-0" />;
+    }
+  };
+
+  return (
+    <Card className="gap-0 py-3">
+      <CardContent className="flex flex-col gap-0 min-w-64 lg:min-w-auto max-w lg:w-auto">
+        <CardHeader
+          className="px-0 cursor-pointer group transition-colors pb-2  gap-1"
+          onClick={() =>
+            setModalView && setModalView({ open: true, taskId: task.id })
+          }
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            {renderTaskStatusIcon(task.status)}
+            <CardTitle
+              className={`line-clamp-1 text-sm font-medium transition-colors ${task.deleted_at ? "text-destructive line-through" : ""} ${task.status == "done" ? "line-through" : ""}`}
+            >
+              {task.title}
+            </CardTitle>
+          </div>
+          <CardDescription className="text-muted-foreground line-clamp-1 text-xs">
+            {task.description}
+          </CardDescription>
+          <CardAction>
+            <Badge
+              variant={
+                task.priority === "high"
+                  ? "destructive-light"
+                  : task.priority === "medium"
+                    ? "warning-light"
+                    : "success-light"
+              }
+              className="pointer-events-none h-5 shrink-0 rounded-sm px-1.5 text-xs capitalize"
+            >
+              {task.priority}
+            </Badge>
+          </CardAction>
+        </CardHeader>
+
+        <div className="flex flex-col mt-auto">
+          <div className="flex flex-row lg:flex-col xl:flex-row justify-between items-end lg:items-start xl:items-end text-sm text-muted-foreground">
+            {task.due_date &&
+            task.status !== "done" &&
+            Date.parse(task.due_date) < Date.now() ? (
+              <div className="flex self-end items-center gap-1.5 text-red-500 text-end">
+                <Calendar size={14} />
+                <time className="text-xs whitespace-nowrap tabular-nums">
+                  Due {formatDate(task.due_date, "dd MMM yyyy")}
+                </time>
+              </div>
+            ) : (
+              <div className="flex self-end  items-center gap-1.5">
+                <Calendar size={14} />
+                <time className="text-xs whitespace-nowrap tabular-nums">
+                  Due {formatDate(task.due_date, "dd MMM yyyy")}
+                </time>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

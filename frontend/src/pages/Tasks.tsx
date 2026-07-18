@@ -72,12 +72,12 @@ const PRIORITY_FILTER = [
 ];
 
 const TIMEFRAME_FILTER = [
+  { label: "Week", value: "week" },
+  { label: "Month", value: "month" },
   {
     label: "All Time",
     value: "all",
   },
-  { label: "Week", value: "week" },
-  { label: "Month", value: "month" },
 ];
 
 const STATUS_KEYS = Object.keys(COLUMN_TITLES) as Task["status"][];
@@ -366,7 +366,9 @@ const Tasks: React.FC = () => {
               className="hidden 2xl:flex flex-col gap-1"
               value={timeframeFilter || "all"}
               onValueChange={(val) =>
-                setPriorityFilter(val === "all" ? "" : val)
+                val
+                  ? setTimeframeFilter(val === "all" ? "" : val)
+                  : setTimeframeFilter("")
               }
             >
               {TIMEFRAME_FILTER.map((timeframe) => (

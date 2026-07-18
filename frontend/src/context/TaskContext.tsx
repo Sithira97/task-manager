@@ -10,7 +10,7 @@ import type {
   Task,
   TaskContextType,
   TaskStatus,
-  Team,
+  TeamUser,
 } from "../types/index.js";
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -20,24 +20,24 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const { token } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [userTeam, setUserTeam] = useState<TeamUser[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearchState] = useState<string>("");
   const [statusFilter, setStatusFilterState] = useState<string>("");
   const [priorityFilter, setPriorityFilterState] = useState<string>("");
-  const [timeframeFilter, setTimeframeFilterState] = useState<string>("all");
+  const [timeframeFilter, setTimeframeFilterState] = useState<string>("week");
 
   useEffect(() => {
     if (!token) {
       setTasks([]);
-      setTeams([]);
+      setUserTeam([]);
       setError(null);
       setSearchState("");
       setStatusFilterState("");
       setPriorityFilterState("");
-      setTimeframeFilterState("all");
+      setTimeframeFilterState("week");
     }
   }, [token]);
 
@@ -51,7 +51,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       if (search) queryParams.append("search", search);
       if (statusFilter) queryParams.append("status", statusFilter);
       if (priorityFilter) queryParams.append("priority", priorityFilter);
-      if (timeframeFilter !== "all") queryParams.append("timeframe", timeframeFilter);
+      if (timeframeFilter !== "all")
+        queryParams.append("timeframe", timeframeFilter);
 
       const response = await fetch(`/api/tasks?${queryParams.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -71,7 +72,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [token, search, statusFilter, priorityFilter, timeframeFilter]);
 
-  const fetchTeams = useCallback(async () => {
+  const fetchUserTeams = useCallback(async () => {
     if (!token) return;
     try {
       const response = await fetch("/api/team", {
@@ -79,7 +80,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       const data = await response.json();
       if (response.ok) {
-        setTeams(data.data);
+        setUserTeam(data.users);
       }
     } catch (err) {
       console.error("Failed to load teams list", err);
@@ -94,9 +95,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (token) {
-      fetchTeams();
+      fetchUserTeams();
     }
-  }, [token, fetchTeams]);
+  }, [token, fetchUserTeams]);
 
   const setSearch = (s: string) => {
     setSearchState(s);
@@ -294,7 +295,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     <TaskContext.Provider
       value={{
         tasks,
-        teams,
+        userTeam,
         loading,
         error,
         search,
@@ -306,7 +307,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         setPriorityFilter,
         setTimeframeFilter,
         fetchTasks,
-        fetchTeams,
+        fetchUserTeams,
         createTask,
         updateTaskOptimistic,
         updateTaskStatus,

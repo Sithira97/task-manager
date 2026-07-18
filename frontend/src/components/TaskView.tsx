@@ -8,23 +8,16 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "./reui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Calendar, Crown, FileText, Users, Clock, Trash } from "lucide-react";
+import { Calendar, FileText, Users, Clock, Trash, Crown } from "lucide-react";
 import { cleanCapitalize, getInitials } from "@/lib/words";
+import { getGradientClass } from "@/lib/colors";
+import { formatDate } from "date-fns";
 
 interface TaskViewProps {
   isOpen: boolean;
   onClose: () => void;
   task?: Task;
 }
-
-const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-  return new Date(dateString).toLocaleDateString(undefined, options);
-};
 
 const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
   if (!task) return null;
@@ -56,7 +49,7 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
               </div>
               {task.deleted_at && (
                 <p className="text-destructive hidden sm:block">
-                  Deleted on: {formatDate(task.deleted_at)}
+                  Deleted on: {formatDate(task.deleted_at, "dd MMM yyyy")}
                 </p>
               )}
             </div>
@@ -115,7 +108,9 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                     isOverdue ? "text-red-500" : ""
                   }`}
                 />
-                {task.due_date ? formatDate(task.due_date) : "No due date"}
+                {task.due_date
+                  ? formatDate(task.due_date, "dd MMM yyyy")
+                  : "No due date"}
               </div>
             </div>
 
@@ -127,7 +122,7 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                 </div>
                 <div className="flex items-center gap-2 text-sm font-medium pl-6 text-destructive">
                   <Calendar size={15} className={`text-destructive`} />
-                  {formatDate(task.deleted_at)}
+                  {formatDate(task.deleted_at, "dd MMM yyyy")}
                 </div>
               </div>
             )}
@@ -147,7 +142,6 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                     </Avatar>
                     <span className="text-sm font-medium flex items-center gap-1.5">
                       {cleanCapitalize(task.created_by.username)}
-                      <Crown className="size-3 fill-yellow-500 text-yellow-500" />
                     </span>
                   </div>
                 ) : (
@@ -173,7 +167,9 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                     className="flex items-center gap-2.5 bg-background border border-border/60 py-1.5 pl-1.5 pr-3.5 rounded-full shadow-sm"
                   >
                     <Avatar size="sm" className="h-6 w-6">
-                      <AvatarFallback className="text-[10px]">
+                      <AvatarFallback
+                        className={`bg-gradient-to-br ${getGradientClass(assignee.username)} font-bold text-white text-base`}
+                      >
                         {getInitials(assignee.username)}
                       </AvatarFallback>
                     </Avatar>

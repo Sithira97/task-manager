@@ -10,6 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarGroup } from "./ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cleanCapitalize, getInitials } from "@/lib/words";
+import { getGradientClass } from "@/lib/colors";
 
 interface UserCardProps {
   team: Team;
@@ -31,7 +32,9 @@ const TeamCard: React.FC<UserCardProps> = ({ team }) => {
             <Tooltip key={team.team_lead.id || team.team_lead.username}>
               <TooltipTrigger>
                 <Avatar>
-                  <AvatarFallback>
+                  <AvatarFallback
+                    className={`bg-gradient-to-br ${getGradientClass(team.team_lead.username)} font-bold text-white text-base`}
+                  >
                     {getInitials(team.team_lead.username)}
                   </AvatarFallback>
                 </Avatar>
@@ -56,7 +59,9 @@ const TeamCard: React.FC<UserCardProps> = ({ team }) => {
                   <Tooltip key={member.id || member.username}>
                     <TooltipTrigger>
                       <Avatar size="sm">
-                        <AvatarFallback>
+                        <AvatarFallback
+                          className={`bg-gradient-to-br ${getGradientClass(member.username)} font-bold text-white text-base`}
+                        >
                           {getInitials(member.username)}
                         </AvatarFallback>
                       </Avatar>

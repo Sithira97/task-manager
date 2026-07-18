@@ -26,6 +26,13 @@ export interface Team {
   deleted_at?: string | null;
 }
 
+export interface TeamUser extends User {
+  tasks: {
+    lead: Task[];
+    collaborate: Task[];
+  };
+}
+
 export interface User {
   id?: number;
   user_id?: number;
@@ -73,7 +80,7 @@ export interface PaginationInfo {
 
 export interface TaskContextType {
   tasks: Task[];
-  teams: Team[];
+  userTeam: TeamUser[];
   loading: boolean;
   error: string | null;
   search: string;
@@ -85,7 +92,7 @@ export interface TaskContextType {
   setPriorityFilter: (priority: string) => void;
   setTimeframeFilter: (timeframe: string) => void;
   fetchTasks: () => Promise<void>;
-  fetchTeams: () => Promise<void>;
+  fetchUserTeams: () => Promise<void>;
   createTask: (taskData: Partial<Task>) => Promise<boolean>;
   updateTaskOptimistic: (
     taskId: number,

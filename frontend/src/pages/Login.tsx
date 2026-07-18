@@ -36,7 +36,7 @@ const Login: React.FC<AuthProps> = ({ onToggleAuth }) => {
 
   return (
     <div className="h-dvh w-dvw flex items-center justify-center p-4 bg-background text-foreground">
-      <Card className="w-full max-w-md border border-border shadow-md">
+      <Card className="w-full max-w-md border border-border shadow-md px-4 sm:px-6">
         <CardHeader className="flex flex-col items-center text-center pb-2">
           <CalendarRange size={42} className="text-primary" />
           <CardTitle className="text-2xl font-bold mt-2">

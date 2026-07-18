@@ -5,6 +5,7 @@ import { RouterProvider, useRoute } from "./context/RouterContext";
 import { TaskProvider } from "./context/TaskContext";
 import { TooltipProvider } from "./components/ui/tooltip";
 import Login from "./pages/Login";
+import Loading from "./pages/Loading";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Tasks = lazy(() => import("@/pages/Tasks"));
@@ -34,7 +35,7 @@ const MainApp: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
-        <div className="pulse">Initializing Workspace Session...</div>
+        <Loading />
       </div>
     );
   }
@@ -56,9 +57,9 @@ const MainApp: React.FC = () => {
         break;
     }
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <Layout>{viewComponent}</Layout>
-      </Suspense>
+      <Layout>
+        <Suspense fallback={<Loading />}>{viewComponent}</Suspense>
+      </Layout>
     );
   }
 

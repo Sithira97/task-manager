@@ -148,9 +148,11 @@ const Dashboard: React.FC = () => {
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
               {openCount + inProgressCount + doneCount}{" "}
-              <span className="text-base font-normal text-muted-foreground">
-                / {stats.total}
-              </span>
+              {isAdmin && (
+                <span className="text-base font-normal text-muted-foreground">
+                  / {stats.total}
+                </span>
+              )}
             </h3>
           </CardContent>
         </Card>
@@ -163,9 +165,11 @@ const Dashboard: React.FC = () => {
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
               {openCount}{" "}
-              <span className="text-base font-normal text-muted-foreground">
-                / {stats.byStatus.open}
-              </span>
+              {isAdmin && (
+                <span className="text-base font-normal text-muted-foreground">
+                  / {stats.byStatus.open}
+                </span>
+              )}
             </h3>
           </CardContent>
         </Card>
@@ -181,9 +185,11 @@ const Dashboard: React.FC = () => {
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
               {inProgressCount}{" "}
-              <span className="text-base font-normal text-muted-foreground">
-                / {stats.byStatus.in_progress}
-              </span>
+              {isAdmin && (
+                <span className="text-base font-normal text-muted-foreground">
+                  / {stats.byStatus.in_progress}
+                </span>
+              )}
             </h3>
           </CardContent>
         </Card>
@@ -198,9 +204,11 @@ const Dashboard: React.FC = () => {
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
               {doneCount}{" "}
-              <span className="text-base font-normal text-muted-foreground">
-                / {stats.byStatus.done}
-              </span>
+              {isAdmin && (
+                <span className="text-base font-normal text-muted-foreground">
+                  / {stats.byStatus.done}
+                </span>
+              )}
             </h3>
           </CardContent>
         </Card>

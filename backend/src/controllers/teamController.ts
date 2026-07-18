@@ -14,7 +14,8 @@ export const getUsersTasks = async (req: AuthRequest, res: Response) => {
   const isAdmin = req.user!.role === "admin";
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
-      fetchTeams(req.user!.id, isAdmin),
+      fetchTeams(isAdmin),
+      isAdmin ? [] : [req.user!.id, req.user!.id],
     );
 
     return res.status(200).json({
@@ -33,15 +34,16 @@ export const getUsersTasks = async (req: AuthRequest, res: Response) => {
 export const getTeam = async (req: AuthRequest, res: Response) => {
   const taskId = Number(req.params.taskId);
   const isAdmin = req.user!.role === "admin";
-  if (!taskId) {
+  if (isNaN(taskId) || taskId <= 0) {
     return res
       .status(400)
-      .json({ success: false, message: "Task ID is required" });
+      .json({ success: false, message: "Valid Task ID is required" });
   }
 
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
-      fetchTeam(req.user!.id, taskId, isAdmin),
+      fetchTeam(isAdmin),
+      isAdmin ? [taskId] : [taskId, req.user!.id, req.user!.id],
     );
 
     return res.status(200).json({
@@ -62,7 +64,8 @@ export const getTeams = async (req: AuthRequest, res: Response) => {
   const users = new Map<number, any>();
   try {
     const [workWith] = await pool.execute<RowDataPacket[]>(
-      fetchUsersWorkWith(req.user!.id, isAdmin),
+      fetchUsersWorkWith(isAdmin),
+      isAdmin ? [] : [req.user!.id, req.user!.id],
     );
 
     // Collaborate
@@ -80,7 +83,8 @@ export const getTeams = async (req: AuthRequest, res: Response) => {
     }
 
     const [workFor] = await pool.execute<RowDataPacket[]>(
-      fetchUsersWorkFor(req.user!.id, isAdmin),
+      fetchUsersWorkFor(isAdmin),
+      isAdmin ? [] : [req.user!.id, req.user!.id],
     );
 
     for (const user of workFor) {

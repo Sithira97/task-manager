@@ -1,4 +1,4 @@
-export const fetchTaskById = (id: number, isAdmin?: boolean): string => {
+export const fetchTaskById = (isAdmin?: boolean): string => {
   return `SELECT t.id,
         t.title, t.description, t.priority, t.status, t.due_date, t.created_at, t.updated_at, t.deleted_at,
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
@@ -21,7 +21,7 @@ export const fetchTaskById = (id: number, isAdmin?: boolean): string => {
         t.id = a.task_id
       LEFT JOIN users u2 ON
         a.user_id = u2.id
-      WHERE t.id = ${id} ${isAdmin ? "" : "AND t.deleted_at IS NULL"} GROUP BY t.id`;
+      WHERE t.id = ? ${isAdmin ? "" : "AND t.deleted_at IS NULL"} GROUP BY t.id`;
 };
 
 export const fetchTasks = (isAdmin?: boolean, userId?: number): string => {
@@ -57,7 +57,7 @@ export const fetchTasks = (isAdmin?: boolean, userId?: number): string => {
   return query;
 };
 
-export const fetchTeams = (id: number, isAdmin?: boolean): string => {
+export const fetchTeams = (isAdmin?: boolean): string => {
   return `SELECT t.id,
         t.title, t.description, t.deleted_at,
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
@@ -81,12 +81,10 @@ export const fetchTeams = (id: number, isAdmin?: boolean): string => {
       LEFT JOIN assignees a ON
         t.id = a.task_id
       LEFT JOIN users u2 ON
-        a.user_id = u2.id ${isAdmin ? "" : `WHERE t.deleted_at IS NULL`} GROUP BY t.id ${isAdmin ? "" : `HAVING (MAX(t.created_by = ${id}) = 1 OR MAX(a.user_id = ${id}) = 1)`}`;
+        a.user_id = u2.id ${isAdmin ? "" : `WHERE t.deleted_at IS NULL`} GROUP BY t.id ${isAdmin ? "" : `HAVING (MAX(t.created_by = ?) = 1 OR MAX(a.user_id = ?) = 1)`}`;
 };
 
 export const fetchTeam = (
-  id: number,
-  taskId: number,
   isAdmin?: boolean,
 ): string => {
   return `SELECT t.id,
@@ -112,10 +110,10 @@ export const fetchTeam = (
       LEFT JOIN assignees a ON
         t.id = a.task_id
       LEFT JOIN users u2 ON
-        a.user_id = u2.id WHERE ${taskId} = t.id ${isAdmin ? "" : `AND t.deleted_at IS NULL`} GROUP BY t.id ${isAdmin ? "" : `HAVING (MAX(t.created_by = ${id}) = 1 OR MAX(a.user_id = ${id}) = 1)`}`;
+        a.user_id = u2.id WHERE ? = t.id ${isAdmin ? "" : `AND t.deleted_at IS NULL`} GROUP BY t.id ${isAdmin ? "" : `HAVING (MAX(t.created_by = ?) = 1 OR MAX(a.user_id = ?) = 1)`}`;
 };
 
-export const fetchUsersWorkWithAdmin = (id: number, isAdmin?: boolean) => {
+export const fetchUsersWorkWithAdmin = (isAdmin?: boolean) => {
   return `SELECT u1.id, u1.username, u1.email , u1.role,
         COALESCE(JSON_ARRAYAGG(CASE
                 WHEN t.id IS NOT NULL THEN 
@@ -152,7 +150,7 @@ export const fetchUsersWorkWithAdmin = (id: number, isAdmin?: boolean) => {
             a.user_id = u2.id
        GROUP BY a.task_id
 ) ta
-    ON ta.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ${id}`} GROUP BY
+    ON ta.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ?`} GROUP BY
         u1.id,
         u1.username,
         u1.email,
@@ -160,7 +158,7 @@ export const fetchUsersWorkWithAdmin = (id: number, isAdmin?: boolean) => {
 `;
 };
 
-export const fetchUsersWorkForAdmin = (id: number, isAdmin?: boolean) => {
+export const fetchUsersWorkForAdmin = (isAdmin?: boolean) => {
   return `SELECT u1.id, u1.username, u1.email${isAdmin ? " , u1.role" : ""},
         IF(COUNT(a.task_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
             JSON_OBJECT(
@@ -178,10 +176,10 @@ export const fetchUsersWorkForAdmin = (id: number, isAdmin?: boolean) => {
       LEFT JOIN assignees a ON
        u1.id =  a.user_id
       LEFT JOIN tasks t ON
-        a.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ${id}`} GROUP BY u1.id`;
+        a.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ?`} GROUP BY u1.id`;
 };
 
-export const fetchUsersWorkWith = (id: number, isAdmin?: boolean) => {
+export const fetchUsersWorkWith = (isAdmin?: boolean) => {
   return `SELECT
             owner.id,
             owner.username,
@@ -211,14 +209,14 @@ export const fetchUsersWorkWith = (id: number, isAdmin?: boolean) => {
             ${
               isAdmin
                 ? ""
-                : `WHERE me.user_id = ${id}
-            AND owner.id <> ${id}
+                : `WHERE me.user_id = ?
+            AND owner.id <> ?
             AND t.deleted_at IS NULL`
             }
         GROUP BY owner.id;`;
 };
 
-export const fetchUsersWorkFor = (id: number, isAdmin?: boolean) => {
+export const fetchUsersWorkFor = (isAdmin?: boolean) => {
   return `SELECT
             u.id,
             u.username,
@@ -248,8 +246,8 @@ export const fetchUsersWorkFor = (id: number, isAdmin?: boolean) => {
             ${
               isAdmin
                 ? ""
-                : `WHERE t.created_by = ${id}
-            AND u.id <> ${id}
+                : `WHERE t.created_by = ?
+            AND u.id <> ?
             AND t.deleted_at IS NULL`
             }
         GROUP BY u.id;`;

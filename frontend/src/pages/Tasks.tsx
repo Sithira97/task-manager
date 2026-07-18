@@ -439,7 +439,7 @@ const Tasks: React.FC = () => {
                 variant="outline"
                 className="hidden sm:flex border-destructive text-destructive/80 dark:hover:text-destructive-foreground hover:bg-destructive dark:hover:bg-destructive hover:text-destructive-foreground "
               >
-                Permenantly Delete
+                Permanently Delete
               </AlertDialogAction>
             )}
             <div className="flex flex-col-reverse sm:flex-row gap-2">
@@ -468,7 +468,7 @@ const Tasks: React.FC = () => {
                     variant="outline"
                     className="sm:hidden text-xs sm:text-sm border-destructive text-destructive/80 dark:hover:text-destructive-foreground hover:bg-destructive dark:hover:bg-destructive hover:text-destructive-foreground "
                   >
-                    Permenantly Delete
+                    Permanently Delete
                   </AlertDialogAction>
                 )}
               </div>

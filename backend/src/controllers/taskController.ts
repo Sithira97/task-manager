@@ -64,7 +64,7 @@ export const createTask = async (req: AuthRequest, res: Response) => {
     }
 
     const taskPriority = priority || "medium";
-    const taskStatus = status || "to_do";
+    const taskStatus = status || "open";
 
     const [result] = await pool.execute<ResultSetHeader>(
       `INSERT INTO tasks
@@ -88,7 +88,8 @@ export const createTask = async (req: AuthRequest, res: Response) => {
     }
 
     const [newTask] = await pool.query<RowDataPacket[]>(
-      fetchTaskById(taskId, createdBy.role === "admin"),
+      fetchTaskById(createdBy.role === "admin"),
+      [taskId],
     );
 
     const resTask = newTask[0];
@@ -246,11 +247,15 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
 
 // retrieve a single task --------------------------------------
 export const getTaskById = async (req: AuthRequest, res: Response) => {
-  const taskId = req.params.id;
+  const taskId = Number(req.params.id);
+  if (isNaN(taskId) || taskId <= 0) {
+    return res.status(400).json({ error: "Invalid task ID" });
+  }
   const isAdmin = req.user!.role === "admin";
   try {
     const [tasks] = await pool.query<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
 
     if (tasks.length === 0) {
@@ -287,14 +292,18 @@ export const getTaskById = async (req: AuthRequest, res: Response) => {
 
 // update a task ---------------------------------------
 export const updateTask = async (req: AuthRequest, res: Response) => {
-  const taskId = req.params.id;
+  const taskId = Number(req.params.id);
+  if (isNaN(taskId) || taskId <= 0) {
+    return res.status(400).json({ error: "Invalid task ID" });
+  }
   const { title, description, priority, status, due_date, assignees } =
     req.body;
   const isAdmin = req.user!.role === "admin";
 
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
 
     if (tasks.length === 0) {
@@ -365,25 +374,25 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
       queryParams.push(taskId);
       await pool.execute<QueryResult>(updateQuery, queryParams);
     }
-    if (
-      assignedTo !== undefined &&
-      Array.isArray(assignedTo) &&
-      assignedTo.length > 0
-    ) {
+
+    if (assignees !== undefined && canEditAll) {
       await pool.execute(`DELETE FROM assignees WHERE task_id = ?`, [taskId]);
-      const assigns = assignedTo.flatMap((user_id: number) => [
-        taskId,
-        user_id,
-      ]);
-      const placeholders = assignedTo.map(() => "(?, ?)").join(", ");
-      await pool.execute(
-        `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders} `,
-        assigns,
-      );
+      if (assignedTo.length > 0) {
+        const assigns = assignedTo.flatMap((user_id: number) => [
+          taskId,
+          user_id,
+        ]);
+        const placeholders = assignedTo.map(() => "(?, ?)").join(", ");
+        await pool.execute(
+          `INSERT INTO assignees (task_id, user_id) VALUES ${placeholders} `,
+          assigns,
+        );
+      }
     }
 
     const [updatedTasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
 
     return res.json({
@@ -400,13 +409,17 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
 
 // update a task's status ---------------------------------------
 export const updateTaskStatus = async (req: AuthRequest, res: Response) => {
-  const taskId = req.params.id;
+  const taskId = Number(req.params.id);
+  if (isNaN(taskId) || taskId <= 0) {
+    return res.status(400).json({ error: "Invalid task ID" });
+  }
   const { status } = req.body;
   const isAdmin = req.user!.role === "admin";
 
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
 
     if (tasks.length === 0) {
@@ -432,7 +445,8 @@ export const updateTaskStatus = async (req: AuthRequest, res: Response) => {
       [status, taskId],
     );
     const [updatedTasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
 
     return res.json({
@@ -449,13 +463,17 @@ export const updateTaskStatus = async (req: AuthRequest, res: Response) => {
 
 // update a task's priority ---------------------------------------
 export const updateTaskPriority = async (req: AuthRequest, res: Response) => {
-  const taskId = req.params.id;
+  const taskId = Number(req.params.id);
+  if (isNaN(taskId) || taskId <= 0) {
+    return res.status(400).json({ error: "Invalid task ID" });
+  }
   const { priority } = req.body;
   const isAdmin = req.user!.role === "admin";
 
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
 
     if (tasks.length === 0) {
@@ -477,7 +495,8 @@ export const updateTaskPriority = async (req: AuthRequest, res: Response) => {
       [priority, taskId],
     );
     const [updatedTasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
     return res.json({
       message: "Task priority updated successfully",
@@ -493,12 +512,16 @@ export const updateTaskPriority = async (req: AuthRequest, res: Response) => {
 
 // soft delete a task ---------------------------------------
 export const deleteTask = async (req: AuthRequest, res: Response) => {
-  const taskId = req.params.id;
+  const taskId = Number(req.params.id);
+  if (isNaN(taskId) || taskId <= 0) {
+    return res.status(400).json({ error: "Invalid task ID" });
+  }
   const isAdmin = req.user!.role === "admin";
 
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
 
     if (tasks.length === 0) {
@@ -532,7 +555,10 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
 
 // force delete a task ---------------------------------------
 export const forceDeleteTask = async (req: AuthRequest, res: Response) => {
-  const taskId = req.params.id;
+  const taskId = Number(req.params.id);
+  if (isNaN(taskId) || taskId <= 0) {
+    return res.status(400).json({ error: "Invalid task ID" });
+  }
   const isAdmin = req.user!.role === "admin";
   if (!isAdmin) {
     return res
@@ -542,7 +568,8 @@ export const forceDeleteTask = async (req: AuthRequest, res: Response) => {
 
   try {
     const [tasks] = await pool.execute<RowDataPacket[]>(
-      fetchTaskById(Number(taskId), isAdmin),
+      fetchTaskById(isAdmin),
+      [taskId],
     );
     if (tasks.length === 0) {
       return res.status(404).json({ error: "Task not found" });

@@ -3,13 +3,18 @@ import cors from "cors";
 import taskRoutes from "./routes/taskRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const CORS_ALLOWED_ORIGINS = process.env.CORS_ALLOWED_ORIGINS || "*";
 
 const app: Express = express();
 
 // Configure CORS to allow interactions from frontend server
 app.use(
   cors({
-    origin: ["159.223.68.222", "localhost"],
+    origin: CORS_ALLOWED_ORIGINS,
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),

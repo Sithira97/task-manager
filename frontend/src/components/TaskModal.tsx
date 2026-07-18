@@ -85,8 +85,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setPriority(task.priority);
       setStatus(task.status);
       setDueDate(formatDate(task.due_date, "yyyy-MM-dd"));
-
-      setAssignedTo(task.assignees.map((user: any) => user.id || user.user_id));
+      if (task.assignees && task.assignees.length > 0 ){
+        setAssignedTo(task.assignees.map((userTask: User) => userTask.id ?? userTask.user_id ?? ""));
+      }
     } else {
       // Clear fields for creation mode
       setTitle("");
@@ -135,7 +136,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     };
 
     let success = false;
-    if (isEdit) {
+    if (isEdit && task) {
       success = await updateTaskOptimistic(task.id, taskPayload);
     } else {
       success = await createTask(taskPayload);
@@ -195,7 +196,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 items={statusValues}
                 value={status}
-                onValueChange={setStatus}
+                onValueChange={(value)=> value && setStatus(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
@@ -217,7 +218,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 items={priorityValues}
                 value={priority}
-                onValueChange={setPriority}
+                onValueChange={(value)=>value && setPriority(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Priority" />
@@ -260,9 +261,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   {(values) => (
                     <>
                       {values.map((value: number) => (
-                        <ComboboxChip key={value + Math.random()}>
+                        <ComboboxChip key={(value ?? 1) + Math.random()}>
                           {cleanCapitalize(
-                            users.find((user) => user.id === value)?.username,
+                           users.find((user) => user.id === value)?.username ?? ""
                           )}
                         </ComboboxChip>
                       ))}
@@ -276,7 +277,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <ComboboxList>
                   {(item: User) => (
                     <ComboboxItem
-                      key={item.id + Math.random()}
+                      key={(item.id ?? 1) + Math.random()}
                       value={item.id}
                       disabled={item.id === user?.id}
                     >

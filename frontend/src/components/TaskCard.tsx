@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cleanCapitalize, getInitials } from "@/lib/words";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/AuthContext";
 
 interface TaskCardProps {
   task: Task;
@@ -66,9 +67,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { updateTaskStatus } = useTasks();
+  const { user } = useAuth();
 
-  const handleStatusChange = async (newStatus: Task["status"]) => {
-    await updateTaskStatus(task.id, newStatus);
+  const handleStatusChange = async (newStatus: Task["status"] | null) => {
+    if (newStatus){
+      await updateTaskStatus(task.id, newStatus);
+    }
   };
 
   const assigneeList = task.assignees?.filter(
@@ -216,28 +220,34 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         </div>
         <div className="flex gap-x-1 flex-1 xl:flex-0">
-          {setModalEdit && (
-            <Button
-              onClick={() => setModalEdit({ open: true, taskId: task.id })}
-              variant="outline"
-              className="flex-1 xl:flex-0 border-primary text-primary hover:bg-primary hover:text-primary-foreground dark:hover:bg-primary hover:border-primary dark:hover:text-primary-foreground"
-            >
-              <Edit />
-              <span className={`hidden xs:block lg:hidden text-sm`}>Edit</span>
-            </Button>
-          )}
-          {setDialogDelete && (
-            <Button
-              onClick={() => setDialogDelete({ open: true, taskId: task.id })}
-              variant="outline"
-              className="flex-1 xl:flex-0 border-destructive text-destructive hover:bg-destructive/40 hover:text-destructive-foreground dark:hover:bg-destructive/50 hover:border-destructive-foreground dark:hover:text-destructive-foreground"
-            >
-              <Trash />
-              <span className={`hidden xs:block lg:hidden text-sm`}>
-                Delete
-              </span>
-            </Button>
-          )}
+          {setModalEdit &&
+            (user?.role === "admin" ||
+              user?.id === task.created_by?.user_id) && (
+              <Button
+                onClick={() => setModalEdit({ open: true, taskId: task.id })}
+                variant="outline"
+                className="flex-1 xl:flex-0 border-primary text-primary hover:bg-primary hover:text-primary-foreground dark:hover:bg-primary hover:border-primary dark:hover:text-primary-foreground"
+              >
+                <Edit />
+                <span className={`hidden xs:block lg:hidden text-sm`}>
+                  Edit
+                </span>
+              </Button>
+            )}
+          {setDialogDelete &&
+            (user?.role === "admin" ||
+              user?.id === task.created_by?.user_id) && (
+              <Button
+                onClick={() => setDialogDelete({ open: true, taskId: task.id })}
+                variant="outline"
+                className="flex-1 xl:flex-0 border-destructive text-destructive hover:bg-destructive/40 hover:text-destructive-foreground dark:hover:bg-destructive/50 hover:border-destructive-foreground dark:hover:text-destructive-foreground"
+              >
+                <Trash />
+                <span className={`hidden xs:block lg:hidden text-sm`}>
+                  Delete
+                </span>
+              </Button>
+            )}
         </div>
       </CardFooter>
     </Card>

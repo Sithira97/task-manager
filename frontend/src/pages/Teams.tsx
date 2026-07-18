@@ -59,7 +59,7 @@ const Teams: React.FC = () => {
             <Select
               items={FILTER_OPTIONS}
               value={filter}
-              onValueChange={setFilter}
+              onValueChange={(value)=> value && setFilter(value)}
             >
               <SelectTrigger className="text-sm">
                 <SelectValue placeholder="Filter teams" />

@@ -291,7 +291,7 @@ const Tasks: React.FC = () => {
           <Select
             items={PRIORITY_FILTER}
             value={priorityFilter || "all"}
-            onValueChange={(val) => setPriorityFilter(val === "all" ? "" : val)}
+            onValueChange={(val) => val ? setPriorityFilter(val === "all" ? "" : val) : setPriorityFilter("")}
           >
             <SelectTrigger className="w-[140px] 2xl:hidden">
               <SelectValue placeholder="Priority" />
@@ -333,7 +333,7 @@ const Tasks: React.FC = () => {
             items={TIMEFRAME_FILTER}
             value={timeframeFilter || "all"}
             onValueChange={(val) =>
-              setTimeframeFilter(val === "all" ? "" : val)
+              val ? setTimeframeFilter(val === "all" ? "" : val): setTimeframeFilter("")
             }
           >
             <SelectTrigger className="w-[150px] 2xl:hidden">

@@ -165,14 +165,14 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
 
     if (timeframe) {
       if (timeframe === "week") {
-        whereConditions.push("t.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
-        countConditions.push("t.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+        whereConditions.push("t.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+        countConditions.push("t.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
       } else if (timeframe === "month") {
         whereConditions.push(
-          "t.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+          "t.updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
         );
         countConditions.push(
-          "t.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+          "t.updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
         );
       }
     }
@@ -596,10 +596,8 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     });
   } catch (error: any) {
     console.error("Get Dashboard Stats Error:", error);
-    return res
-      .status(500)
-      .json({
-        error: "Internal server error occurred fetching dashboard stats",
-      });
+    return res.status(500).json({
+      error: "Internal server error occurred fetching dashboard stats",
+    });
   }
 };

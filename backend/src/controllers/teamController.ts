@@ -65,14 +65,17 @@ export const getTeams = async (req: AuthRequest, res: Response) => {
       fetchUsersWorkWith(req.user!.id, isAdmin),
     );
 
+    // Collaborate
     for (const user of workWith) {
       users.set(user.id, {
         id: user.id,
         username: user.username,
         email: user.email,
         role: user.role,
-        work_with: user.tasks,
-        work_for: [],
+        tasks: {
+          lead: [],
+          collaborate: user.tasks,
+        },
       });
     }
 
@@ -87,11 +90,13 @@ export const getTeams = async (req: AuthRequest, res: Response) => {
           username: user.username,
           email: user.email,
           role: user.role,
-          work_with: [],
-          work_for: user.tasks,
+          tasks: {
+            lead: user.tasks,
+            collaborate: [],
+          },
         });
       } else {
-        users.get(user.id).work_for = user.tasks;
+        users.get(user.id).tasks.lead = user.tasks;
       }
     }
     return res.status(200).json({

@@ -115,7 +115,7 @@ export const fetchTeam = (
         a.user_id = u2.id WHERE ${taskId} = t.id ${isAdmin ? "" : `AND t.deleted_at IS NULL`} GROUP BY t.id ${isAdmin ? "" : `HAVING (MAX(t.created_by = ${id}) = 1 OR MAX(a.user_id = ${id}) = 1)`}`;
 };
 
-export const fetchUsersWorkWith = (id: number, isAdmin?: boolean) => {
+export const fetchUsersWorkWithAdmin = (id: number, isAdmin?: boolean) => {
   return `SELECT u1.id, u1.username, u1.email , u1.role,
         COALESCE(JSON_ARRAYAGG(CASE
                 WHEN t.id IS NOT NULL THEN 
@@ -160,7 +160,7 @@ export const fetchUsersWorkWith = (id: number, isAdmin?: boolean) => {
 `;
 };
 
-export const fetchUsersWorkFor = (id: number, isAdmin?: boolean) => {
+export const fetchUsersWorkForAdmin = (id: number, isAdmin?: boolean) => {
   return `SELECT u1.id, u1.username, u1.email${isAdmin ? " , u1.role" : ""},
         IF(COUNT(a.task_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
             JSON_OBJECT(
@@ -179,4 +179,78 @@ export const fetchUsersWorkFor = (id: number, isAdmin?: boolean) => {
        u1.id =  a.user_id
       LEFT JOIN tasks t ON
         a.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ${id}`} GROUP BY u1.id`;
+};
+
+export const fetchUsersWorkWith = (id: number, isAdmin?: boolean) => {
+  return `SELECT
+            owner.id,
+            owner.username,
+            owner.email${isAdmin ? ", owner.role" : ""},
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'id', t.id,
+                    'title', t.title,
+                    'description', t.description,
+                    'status', t.status,
+                    'priority', t.priority,
+                    'due_date', t.due_date${
+                      isAdmin
+                        ? `,   
+                    'created_at', t.created_at,
+                    'updated_at', t.updated_at,
+                    'deleted_at', t.deleted_at`
+                        : ""
+                    }
+                )
+            ) AS tasks
+        FROM assignees me
+        JOIN tasks t
+            ON t.id = me.task_id
+        JOIN users owner
+            ON owner.id = t.created_by
+            ${
+              isAdmin
+                ? ""
+                : `WHERE me.user_id = ${id}
+            AND owner.id <> ${id}
+            AND t.deleted_at IS NULL`
+            }
+        GROUP BY owner.id;`;
+};
+
+export const fetchUsersWorkFor = (id: number, isAdmin?: boolean) => {
+  return `SELECT
+            u.id,
+            u.username,
+            u.email${isAdmin ? ", u.role" : ""},
+            JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                    'id', t.id,
+                    'title', t.title,
+                    'description', t.description,
+                    'status', t.status,
+                    'priority', t.priority,
+                    'due_date', t.due_date${
+                      isAdmin
+                        ? `,
+                    'created_at', t.created_at,
+                    'updated_at', t.updated_at,
+                    'deleted_at', t.deleted_at`
+                        : ""
+                    }
+                )
+            ) AS tasks
+        FROM tasks t
+        JOIN assignees a
+            ON a.task_id = t.id
+        JOIN users u
+            ON u.id = a.user_id
+            ${
+              isAdmin
+                ? ""
+                : `WHERE t.created_by = ${id}
+            AND u.id <> ${id}
+            AND t.deleted_at IS NULL`
+            }
+        GROUP BY u.id;`;
 };

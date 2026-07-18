@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "./reui/badge";
+import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Calendar, FileText, Users, Clock, Trash, Crown } from "lucide-react";
 import { cleanCapitalize, getInitials } from "@/lib/words";

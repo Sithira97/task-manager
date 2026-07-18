@@ -9,7 +9,7 @@ import {
   KanbanItemHandle,
   KanbanOverlay,
   type KanbanMoveEvent,
-} from "@/components/reui/kanban";
+} from "@/components/ui/kanban";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +42,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowDownUp } from "lucide-react";
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
-import { Badge } from "@/components/reui/badge";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import {
   Field,

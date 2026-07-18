@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   CheckCircle2,
   PlayCircle,
@@ -8,7 +8,7 @@ import {
 import { cleanCapitalize } from "@/lib/words";
 import { useAuth } from "@/context/AuthContext";
 import { useTasks } from "@/context/TaskContext";
-import { isSameDay } from "@/lib/calendar";
+import { getLast7Days, isSameDay, parseTaskDate } from "@/lib/calendar";
 import {
   Card,
   CardContent,
@@ -34,38 +34,62 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart";
+import { formatDate } from "date-fns";
+import { statusChartConfig } from "@/lib/colors";
+
+type StatsType = {
+  total: number;
+  byStatus: {
+    open: number;
+    in_progress: number;
+    done: number;
+  };
+  overdue: number;
+};
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token, isAdmin } = useAuth();
   const { tasks } = useTasks();
+  const [stats, setStats] = useState<StatsType>({
+    total: 0,
+    byStatus: {
+      open: 0,
+      in_progress: 0,
+      done: 0,
+    },
+    overdue: 0,
+  });
 
-  // Helper to generate last 7 days (including today) in local timezone
-  const getLast7Days = () => {
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      d.setDate(d.getDate() - i);
-      days.push(d);
-    }
-    return days;
-  };
-
-  const parseTaskDate = (dateStr: string) => {
-    if (!dateStr) return new Date(0);
-    // Replace space between date and time with T if present, to parse correctly in Safari/mobile browsers
-    const normalized = dateStr.includes("T")
-      ? dateStr
-      : dateStr.replace(" ", "T");
-    return new Date(normalized);
-  };
-
-  // 1. Process Doughnut Chart Data (Task Status Distribution)
   const openCount = tasks.filter((task) => task.status === "open").length;
   const inProgressCount = tasks.filter(
     (task) => task.status === "in_progress",
   ).length;
   const doneCount = tasks.filter((task) => task.status === "done").length;
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`/api/auth/dashboard/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch dashboard stats");
+      }
+      const data = await response.json();
+      if (data && data.stats) {
+        setStats(data.stats);
+      }
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    if (isAdmin) {
+      fetchStats();
+    }
+  }, [token, isAdmin, tasks]);
 
   const doughnutData = [
     { name: "open", value: openCount, fill: "var(--color-open)" },
@@ -76,30 +100,10 @@ const Dashboard: React.FC = () => {
     },
     { name: "done", value: doneCount, fill: "var(--color-done)" },
   ];
-
-  const statusChartConfig = {
-    open: {
-      label: "Open",
-      color: "#f59e0b",
-    },
-    in_progress: {
-      label: "In Progress",
-      color: "#3b82f6",
-    },
-    done: {
-      label: "Done",
-      color: "#10b981",
-    },
-  } satisfies ChartConfig;
-
-  // 2. Process Bar Chart Data (Productivity - Completed Tasks in Last 7 Days)
   const last7Days = getLast7Days();
   const barChartData = last7Days.map((day) => {
-    const dayLabel = day.toLocaleDateString("en-US", { weekday: "short" }); // e.g. "Mon"
-    const dateLabel = day.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    }); // e.g. "Jul 17"
+    const dayLabel = formatDate(day, "EEE");
+    const dateLabel = formatDate(day, "MMM dd");
 
     const completedCount = tasks.filter((task) => {
       if (task.status !== "done" || !task.updated_at) return false;
@@ -143,7 +147,10 @@ const Dashboard: React.FC = () => {
               <span className="text-sm text-muted-foreground">Total Tasks</span>
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
-              {tasks.length}
+              {openCount + inProgressCount + doneCount}{" "}
+              <span className="text-base font-normal text-muted-foreground">
+                / {stats.total}
+              </span>
             </h3>
           </CardContent>
         </Card>
@@ -155,7 +162,10 @@ const Dashboard: React.FC = () => {
               <span className="text-sm text-muted-foreground">Open Tasks</span>
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
-              {tasks.filter((task) => task.status === "open").length}
+              {openCount}{" "}
+              <span className="text-base font-normal text-muted-foreground">
+                / {stats.byStatus.open}
+              </span>
             </h3>
           </CardContent>
         </Card>
@@ -170,7 +180,10 @@ const Dashboard: React.FC = () => {
               </span>
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
-              {tasks.filter((task) => task.status === "in_progress").length}
+              {inProgressCount}{" "}
+              <span className="text-base font-normal text-muted-foreground">
+                / {stats.byStatus.in_progress}
+              </span>
             </h3>
           </CardContent>
         </Card>
@@ -184,7 +197,10 @@ const Dashboard: React.FC = () => {
               </span>
             </div>
             <h3 className="text-3xl font-bold items-end text-right">
-              {tasks.filter((task) => task.status === "done").length}
+              {doneCount}{" "}
+              <span className="text-base font-normal text-muted-foreground">
+                / {stats.byStatus.done}
+              </span>
             </h3>
           </CardContent>
         </Card>
@@ -232,7 +248,7 @@ const Dashboard: React.FC = () => {
                 </ChartContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-12">
                   <span className="text-4xl font-extrabold tracking-tight tabular-nums text-foreground">
-                    {tasks.length}
+                    {openCount + inProgressCount + doneCount}
                   </span>
                   <span className="text-[11px] uppercase font-semibold tracking-wider text-muted-foreground mt-1">
                     Total Tasks

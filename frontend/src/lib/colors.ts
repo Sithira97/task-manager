@@ -15,3 +15,18 @@ export const getGradientClass = (username: string) => {
   const index = Math.abs(hash) % AVATAR_GRADIENTS.length;
   return AVATAR_GRADIENTS[index];
 };
+
+export const statusChartConfig = {
+  open: {
+    label: "Open",
+    color: "#f59e0b",
+  },
+  in_progress: {
+    label: "In Progress",
+    color: "#3b82f6",
+  },
+  done: {
+    label: "Done",
+    color: "#10b981",
+  },
+};

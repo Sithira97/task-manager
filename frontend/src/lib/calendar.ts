@@ -14,3 +14,22 @@ export const isSameDay = (d1: Date, d2: Date) => {
     d1.getDate() === d2.getDate()
   );
 };
+
+export const getLast7Days = () => {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - i);
+    days.push(d);
+  }
+  return days;
+};
+
+export const parseTaskDate = (dateStr: string) => {
+  if (!dateStr) return new Date(0);
+  const normalized = dateStr.includes("T")
+    ? dateStr
+    : dateStr.replace(" ", "T");
+  return new Date(normalized);
+};

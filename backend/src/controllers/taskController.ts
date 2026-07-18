@@ -569,17 +569,17 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
 
   try {
     const [[totalTasksResult]] = await pool.query<RowDataPacket[]>(
-      `SELECT COUNT(*) as count FROM tasks WHERE deleted_at IS NULL`,
+      `SELECT COUNT(*) as count FROM tasks`,
     );
     const [[statusStats]] = await pool.query<RowDataPacket[]>(
       `SELECT 
         SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open,
         SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
         SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as done
-       FROM tasks WHERE deleted_at IS NULL`,
+       FROM tasks`,
     );
     const [[overdueStats]] = await pool.query<RowDataPacket[]>(
-      `SELECT COUNT(*) as overdue FROM tasks WHERE due_date < NOW() AND status != 'done' AND deleted_at IS NULL`,
+      `SELECT COUNT(*) as overdue FROM tasks WHERE due_date < NOW() AND status != 'done'`,
     );
 
     return res.json({

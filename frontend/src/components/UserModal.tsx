@@ -36,8 +36,8 @@ const UserModal: React.FC<UserCardProps> = ({ isOpen, onClose, user }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[calc(100dvh-12rem)]">
-        <DialogHeader className="flex flex-row items-center justify-between gap-4 pr-6 pl-4">
+      <DialogContent className="px-4 xs:px-5 sm:px-6">
+        <DialogHeader className="flex flex-col xs:flex-row items-center justify-between gap-4 xs:pr-6 xs:pl-4">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar
               size="lg"
@@ -120,7 +120,7 @@ const UserModal: React.FC<UserCardProps> = ({ isOpen, onClose, user }) => {
                 </TabsList>
                 <TabsContent
                   value="lead"
-                  className="overflow-y-auto p-2 space-y-2 scrollbar"
+                  className="overflow-y-auto p-1 xs:p-2 space-y-2 scrollbar"
                 >
                   {Lead.length > 0 ? (
                     Lead.map((task: Task) => (
@@ -136,7 +136,7 @@ const UserModal: React.FC<UserCardProps> = ({ isOpen, onClose, user }) => {
                 </TabsContent>
                 <TabsContent
                   value="collab"
-                  className="overflow-y-auto p-2 space-y-2 scrollbar"
+                  className="overflow-y-auto xs:p-2 space-y-2 scrollbar"
                 >
                   {Collab.length > 0 ? (
                     Collab.map((task: Task) => (

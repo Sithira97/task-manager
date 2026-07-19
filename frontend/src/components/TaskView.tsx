@@ -137,11 +137,11 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                   <div className="flex items-center gap-2.5">
                     <Avatar size="sm" className="h-7 w-7">
                       <AvatarFallback className="text-xs">
-                        {getInitials(task.created_by.username)}
+                        {getInitials(task.created_by.name)}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium flex items-center gap-1.5">
-                      {cleanCapitalize(task.created_by.username)}
+                      {cleanCapitalize(task.created_by.name)}
                     </span>
                   </div>
                 ) : (
@@ -168,13 +168,13 @@ const TaskView: React.FC<TaskViewProps> = ({ isOpen, onClose, task }) => {
                   >
                     <Avatar size="sm" className="h-6 w-6">
                       <AvatarFallback
-                        className={`bg-gradient-to-br ${getGradientClass(assignee.username)} font-bold text-white text-base`}
+                        className={`bg-gradient-to-br ${getGradientClass(assignee.name)} font-bold text-white text-base`}
                       >
-                        {getInitials(assignee.username)}
+                        {getInitials(assignee.name)}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium">
-                      {cleanCapitalize(assignee.username)}
+                      {cleanCapitalize(assignee.name)}
                     </span>
                   </div>
                 ))}

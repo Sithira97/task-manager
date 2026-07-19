@@ -51,7 +51,7 @@ const Register: React.FC<AuthProps> = ({ onToggleAuth }) => {
 
   return (
     <div className="h-dvh w-dvw flex items-center justify-center p-4 bg-background text-foreground">
-      <Card className="w-full max-w-md border border-border shadow-md">
+      <Card className="w-full max-w-md border border-border shadow-md px-4 sm:px-6">
         <CardHeader className="flex flex-col items-center text-center pb-2">
           <CalendarRange size={42} className="text-primary" />
           <CardTitle className="text-2xl font-bold mt-2">
@@ -71,16 +71,16 @@ const Register: React.FC<AuthProps> = ({ onToggleAuth }) => {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Field>
-              <FieldLabel htmlFor="username">Username</FieldLabel>
+              <FieldLabel htmlFor="name">Name</FieldLabel>
               <InputGroup className="h-10">
                 <InputGroupAddon className="px-3">
                   <UserIcon size={18} />
                 </InputGroupAddon>
                 <InputGroupInput
-                  id="username"
+                  id="name"
                   type="text"
                   required
-                  placeholder="john doe"
+                  placeholder="John Doe"
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value);

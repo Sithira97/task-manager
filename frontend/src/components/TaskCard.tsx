@@ -96,7 +96,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const assigneeList = task.assignees?.filter(
-    (assignee) => assignee.username !== task.created_by?.username,
+    (assignee) => assignee.user_id !== task.created_by?.user_id,
   );
   const overflowAssignees =
     assigneeList && assigneeList.length > 2 && assigneeList.slice(2);
@@ -142,14 +142,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   <TooltipTrigger>
                     <Avatar>
                       <AvatarFallback
-                        className={`bg-gradient-to-br ${getGradientClass(task.created_by.username)} text-sm  text-white`}
+                        className={`bg-gradient-to-br ${getGradientClass(task.created_by.name)} text-sm  text-white`}
                       >
-                        {getInitials(task.created_by.username)}
+                        {getInitials(task.created_by.name)}
                       </AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {cleanCapitalize(task.created_by.username)}
+                    {cleanCapitalize(task.created_by.name)}
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -158,14 +158,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   <TooltipTrigger>
                     <Avatar size="sm">
                       <AvatarFallback
-                        className={`bg-gradient-to-br ${getGradientClass(assignee.username)} text-sm  text-white`}
+                        className={`bg-gradient-to-br ${getGradientClass(assignee.name)} text-sm  text-white`}
                       >
-                        {getInitials(assignee.username)}
+                        {getInitials(assignee.name)}
                       </AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {cleanCapitalize(assignee.username)}
+                    {cleanCapitalize(assignee.name)}
                   </TooltipContent>
                 </Tooltip>
               ))}
@@ -178,8 +178,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="flex flex-col gap-1">
                     {overflowAssignees?.map((assignee) => (
-                      <p key={assignee.id}>
-                        {cleanCapitalize(assignee.username)}
+                      <p key={`${task.id}-${assignee.id}`}>
+                        {cleanCapitalize(assignee.name)}
                       </p>
                     ))}
                   </TooltipContent>
@@ -267,7 +267,7 @@ export const TaskCardSmall: React.FC<TaskCardProps> = ({
   setModalView,
 }) => {
   const assigneeList = task.assignees?.filter(
-    (assignee) => assignee.username !== task.created_by?.username,
+    (assignee) => assignee.user_id !== task.created_by?.user_id,
   );
   const overflowAssignees =
     assigneeList && assigneeList.length > 2 && assigneeList.slice(2);
@@ -313,14 +313,14 @@ export const TaskCardSmall: React.FC<TaskCardProps> = ({
                   <TooltipTrigger>
                     <Avatar>
                       <AvatarFallback
-                        className={`bg-gradient-to-br ${getGradientClass(task.created_by.username)} text-sm  text-white`}
+                        className={`bg-gradient-to-br ${getGradientClass(task.created_by.name)} text-sm  text-white`}
                       >
-                        {getInitials(task.created_by.username)}
+                        {getInitials(task.created_by.name)}
                       </AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {cleanCapitalize(task.created_by.username)}
+                    {cleanCapitalize(task.created_by.name)}
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -329,14 +329,14 @@ export const TaskCardSmall: React.FC<TaskCardProps> = ({
                   <TooltipTrigger>
                     <Avatar size="sm">
                       <AvatarFallback
-                        className={`bg-gradient-to-br ${getGradientClass(assignee.username)} text-sm  text-white`}
+                        className={`bg-gradient-to-br ${getGradientClass(assignee.name)} text-sm  text-white`}
                       >
-                        {getInitials(assignee.username)}
+                        {getInitials(assignee.name)}
                       </AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {cleanCapitalize(assignee.username)}
+                    {cleanCapitalize(assignee.name)}
                   </TooltipContent>
                 </Tooltip>
               ))}
@@ -349,9 +349,7 @@ export const TaskCardSmall: React.FC<TaskCardProps> = ({
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="flex flex-col gap-1">
                     {overflowAssignees?.map((assignee) => (
-                      <p key={assignee.id}>
-                        {cleanCapitalize(assignee.username)}
-                      </p>
+                      <p key={assignee.id}>{cleanCapitalize(assignee.name)}</p>
                     ))}
                   </TooltipContent>
                 </Tooltip>

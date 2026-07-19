@@ -264,8 +264,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                       {values.map((value: number) => (
                         <ComboboxChip key={value}>
                           {cleanCapitalize(
-                            users.find((user) => user.id === value)?.username ??
-                              "",
+                            users.find((user) => user.id === value)?.name ?? "",
                           )}
                         </ComboboxChip>
                       ))}
@@ -277,13 +276,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <ComboboxContent anchor={anchor}>
                 <ComboboxEmpty>No items found.</ComboboxEmpty>
                 <ComboboxList>
-                  {(item: User) => (
+                  {(selectableUser: User) => (
                     <ComboboxItem
-                      key={item.id}
-                      value={item.id}
-                      disabled={item.id === user?.id}
+                      key={selectableUser.id}
+                      value={selectableUser.id}
+                      disabled={selectableUser.id === user?.id}
                     >
-                      {cleanCapitalize(item.username)}
+                      {cleanCapitalize(selectableUser.name)}
                     </ComboboxItem>
                   )}
                 </ComboboxList>

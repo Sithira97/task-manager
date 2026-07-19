@@ -66,30 +66,30 @@ const Dashboard: React.FC = () => {
   ).length;
   const doneCount = tasks.filter((task) => task.status === "done").length;
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch(`/api/auth/dashboard/stats`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch dashboard stats");
-      }
-      const data = await response.json();
-      if (data && data.stats) {
-        setStats(data.stats);
-      }
-    } catch (err) {
-      console.error("Error fetching stats:", err);
-    }
-  };
-
   useEffect(() => {
     if (!token) return;
+
+    async function fetchStats() {
+      try {
+        const response = await fetch(`/api/auth/dashboard/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard stats");
+        }
+        const data = await response.json();
+        if (data && data.stats) {
+          setStats(data.stats);
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
+    }
 
     if (isAdmin) {
       fetchStats();
     }
-  }, [token, isAdmin, tasks]);
+  }, [token, isAdmin]);
 
   const doughnutData = [
     { name: "open", value: openCount, fill: "var(--color-open)" },
@@ -133,7 +133,7 @@ const Dashboard: React.FC = () => {
           <p className="text-sm text-muted-foreground">
             Welcome back,{" "}
             <strong className="text-primary">
-              {cleanCapitalize(user?.username || "")}
+              {cleanCapitalize(user?.name || "")}
             </strong>
             . Here is an overview of your team tasks.
           </p>

@@ -190,7 +190,11 @@ function TaskColumn({
           >
             {sortedTasks && sortedTasks.length > 0 ? (
               sortedTasks.map((task) => (
-                <KanbanItem key={task.id} value={task.id.toString()} {...props}>
+                <KanbanItem
+                  key={`${value}-${task.id}`}
+                  value={task.id.toString()}
+                  {...props}
+                >
                   {!isOverlay ? (
                     <KanbanItemHandle>
                       <TaskCard
@@ -304,7 +308,10 @@ const Tasks: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               {PRIORITY_FILTER.map((priority) => (
-                <SelectItem key={priority.value} value={priority.value}>
+                <SelectItem
+                  key={`select-${priority.value}`}
+                  value={priority.value}
+                >
                   {priority.label}
                 </SelectItem>
               ))}
@@ -325,7 +332,7 @@ const Tasks: React.FC = () => {
               }
             >
               {PRIORITY_FILTER.map((priority) => (
-                <Field key={priority.value} orientation="horizontal">
+                <Field key={`radio-${priority.value}`} orientation="horizontal">
                   <RadioGroupItem value={priority.value} id={priority.value} />
                   <FieldLabel htmlFor={priority.value}>
                     {priority.label}
@@ -349,7 +356,10 @@ const Tasks: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               {TIMEFRAME_FILTER.map((timeframe) => (
-                <SelectItem key={timeframe.value} value={timeframe.value}>
+                <SelectItem
+                  key={`select-${timeframe.value}`}
+                  value={timeframe.value}
+                >
                   {timeframe.label}
                 </SelectItem>
               ))}
@@ -372,7 +382,10 @@ const Tasks: React.FC = () => {
               }
             >
               {TIMEFRAME_FILTER.map((timeframe) => (
-                <Field key={timeframe.value} orientation="horizontal">
+                <Field
+                  key={`field-${timeframe.value}`}
+                  orientation="horizontal"
+                >
                   <RadioGroupItem
                     value={timeframe.value}
                     id={timeframe.value}
@@ -396,7 +409,7 @@ const Tasks: React.FC = () => {
         <KanbanBoard className="flex-1 gap-2 grid grid-rows-3 grid-cols-1 sm:grid-cols-1 lg:grid-rows-1 lg:auto-rows-fr lg:grid-cols-3 px-4 min-w-0">
           {Object.entries(columns).map(([columnValue, columnTasks]) => (
             <TaskColumn
-              key={columnValue}
+              key={`column-${columnValue}`}
               value={columnValue}
               tasks={columnTasks}
               setDialogDelete={setDialogDelete}

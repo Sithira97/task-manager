@@ -47,14 +47,14 @@ const TeamUserCard: React.FC<UserCardProps> = ({ user, setModalView }) => {
             className="ring-2 ring-primary/10 group-hover/card:ring-primary/20 transition-all"
           >
             <AvatarFallback
-              className={`bg-gradient-to-br ${getGradientClass(user.username)} font-bold text-white text-base`}
+              className={`bg-gradient-to-br ${getGradientClass(user.name)} font-bold text-white text-base`}
             >
-              {getInitials(user.username)}
+              {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col min-w-0">
             <CardTitle className="font-bold text-base text-foreground truncate flex items-center gap-1.5">
-              {cleanCapitalize(user.username)}
+              {cleanCapitalize(user.name)}
             </CardTitle>
             {user.email && (
               <CardDescription className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">

@@ -44,14 +44,14 @@ const UserModal: React.FC<UserCardProps> = ({ isOpen, onClose, user }) => {
               className="ring-2 ring-primary/10 group-hover/card:ring-primary/20 transition-all"
             >
               <AvatarFallback
-                className={`bg-gradient-to-br ${getGradientClass(user.username)} font-bold text-white text-base`}
+                className={`bg-gradient-to-br ${getGradientClass(user.name)} font-bold text-white text-base`}
               >
-                {getInitials(user.username)}
+                {getInitials(user.name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col min-w-0">
               <DialogTitle className="font-bold text-base text-foreground truncate flex items-center gap-1.5">
-                {cleanCapitalize(user.username)}
+                {cleanCapitalize(user.name)}
               </DialogTitle>
               {user.email && (
                 <DialogDescription className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
@@ -124,7 +124,10 @@ const UserModal: React.FC<UserCardProps> = ({ isOpen, onClose, user }) => {
                 >
                   {Lead.length > 0 ? (
                     Lead.map((task: Task) => (
-                      <TaskCardExtraSmall key={task.id} task={task} />
+                      <TaskCardExtraSmall
+                        key={`${user.id}-led-${task.id}`}
+                        task={task}
+                      />
                     ))
                   ) : (
                     <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
@@ -140,7 +143,10 @@ const UserModal: React.FC<UserCardProps> = ({ isOpen, onClose, user }) => {
                 >
                   {Collab.length > 0 ? (
                     Collab.map((task: Task) => (
-                      <TaskCardExtraSmall key={task.id} task={task} />
+                      <TaskCardExtraSmall
+                        key={`${user.id}-col-${task.id}`}
+                        task={task}
+                      />
                     ))
                   ) : (
                     <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">

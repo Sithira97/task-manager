@@ -45,7 +45,7 @@ export interface TeamUser extends User {
 export interface User {
   id: number;
   user_id?: number;
-  username: string;
+  name: string;
   email?: string;
   role?: "admin" | "user";
   created_at?: string;
@@ -61,7 +61,7 @@ export interface AuthContextType {
   error: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   registerUser: (
-    username: string,
+    name: string,
     email: string,
     password: string,
   ) => Promise<boolean>;

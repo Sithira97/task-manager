@@ -57,7 +57,12 @@ const Teams: React.FC = () => {
   return (
     <main className="flex-1 flex flex-col overflow-y-auto mb-16 sm:mb-0 p-3 xs:p-4 sm:p-5">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="font-bold text-xl md:text-2xl text-primary">Teams</h1>
+        <h1 className="font-bold text-xl md:text-2xl text-primary">
+          Team Members{" "}
+          <span className="text-xs text-muted-foreground font-normal">
+            ({userTeam?.length || 0})
+          </span>
+        </h1>
 
         {userTeam && userTeam.length > 0 && (
           <div>
@@ -91,7 +96,7 @@ const Teams: React.FC = () => {
             >
               {displayedTeams.map((teamUser) => (
                 <UserCard
-                  key={teamUser.id}
+                  key={`user-${teamUser.id}`}
                   user={teamUser}
                   setModalView={setModalView}
                 />

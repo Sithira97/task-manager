@@ -24,7 +24,7 @@ import {
   PopoverDescription,
 } from "./ui/popover";
 import { Button } from "./ui/button";
-import { cleanCapitalize } from "@/lib/words";
+import { cleanCapitalize, getInitials } from "@/lib/words";
 import { ModeToggle } from "./ui/mode-toggle";
 import type { Route } from "../types";
 
@@ -42,7 +42,7 @@ const NavItem: { view: Route; icon: LucideIcon; label: string }[] = [
   {
     view: "teams",
     icon: Users,
-    label: "Teams",
+    label: "Team Members",
   },
 ];
 
@@ -98,16 +98,14 @@ const Layout: React.FC<{
                 {user && (
                   <div className="flex items-center gap-2 cursor-pointer">
                     <div className="hidden sm:block text-right">
-                      <p className="text-sm">
-                        {cleanCapitalize(user?.username)}
-                      </p>
+                      <p className="text-sm">{cleanCapitalize(user?.name)}</p>
                       <p className="text-xs text-muted-foreground">
                         {user?.email}
                       </p>
                     </div>
                     <Avatar>
                       <AvatarFallback className="bg-primary text-background">
-                        {user?.username[0].toLocaleUpperCase()}
+                        {getInitials(user?.name)}
                       </AvatarFallback>
                     </Avatar>
                   </div>
@@ -116,9 +114,7 @@ const Layout: React.FC<{
               <PopoverContent align="end">
                 {user && (
                   <PopoverHeader>
-                    <PopoverTitle>
-                      {cleanCapitalize(user?.username)}
-                    </PopoverTitle>
+                    <PopoverTitle>{cleanCapitalize(user?.name)}</PopoverTitle>
                     <PopoverDescription>{user?.email}</PopoverDescription>
                   </PopoverHeader>
                 )}

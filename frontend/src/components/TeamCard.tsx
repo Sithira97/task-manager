@@ -18,7 +18,7 @@ interface UserCardProps {
 
 const TeamCard: React.FC<UserCardProps> = ({ team }) => {
   const teamMembers = team.team_members?.filter(
-    (member) => member.username !== team.team_lead?.username,
+    (member) => member.name !== team.team_lead?.name,
   );
 
   return (
@@ -29,18 +29,18 @@ const TeamCard: React.FC<UserCardProps> = ({ team }) => {
             Team Lead:
           </span>
           {team.team_lead ? (
-            <Tooltip key={team.team_lead.id || team.team_lead.username}>
+            <Tooltip key={team.team_lead.id || team.team_lead.name}>
               <TooltipTrigger>
                 <Avatar>
                   <AvatarFallback
-                    className={`bg-gradient-to-br ${getGradientClass(team.team_lead.username)} font-bold text-white text-base`}
+                    className={`bg-gradient-to-br ${getGradientClass(team.team_lead.name)} font-bold text-white text-base`}
                   >
-                    {getInitials(team.team_lead.username)}
+                    {getInitials(team.team_lead.name)}
                   </AvatarFallback>
                 </Avatar>
               </TooltipTrigger>
               <TooltipContent>
-                {cleanCapitalize(team.team_lead.username)}
+                {cleanCapitalize(team.team_lead.name)}
               </TooltipContent>
             </Tooltip>
           ) : (
@@ -56,18 +56,18 @@ const TeamCard: React.FC<UserCardProps> = ({ team }) => {
             <div className="flex -space-x-2 items-center overflow-visible">
               <AvatarGroup>
                 {teamMembers.map((member) => (
-                  <Tooltip key={member.id || member.username}>
+                  <Tooltip key={member.id || member.name}>
                     <TooltipTrigger>
                       <Avatar size="sm">
                         <AvatarFallback
-                          className={`bg-gradient-to-br ${getGradientClass(member.username)} font-bold text-white text-base`}
+                          className={`bg-gradient-to-br ${getGradientClass(member.name)} font-bold text-white text-base`}
                         >
-                          {getInitials(member.username)}
+                          {getInitials(member.name)}
                         </AvatarFallback>
                       </Avatar>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {cleanCapitalize(member.username)}
+                      {cleanCapitalize(member.name)}
                     </TooltipContent>
                   </Tooltip>
                 ))}

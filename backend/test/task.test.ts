@@ -23,7 +23,7 @@ describe("Task API Tests", () => {
   let task1Id: number;
 
   before(async () => {
-    const usernames = ["admin_task", "usera_task", "userb_task"];
+    const names = ["admin_task", "usera_task", "userb_task"];
     const emails = [
       "admin@task-test.com",
       "usera@task-test.com",
@@ -45,16 +45,16 @@ describe("Task API Tests", () => {
     }
 
     const [adminRes] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [usernames[0], emails[0], "hashed_password", "admin"],
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [names[0], emails[0], "hashed_password", "admin"],
     );
     const [useraRes] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [usernames[1], emails[1], "hashed_password", "user"],
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [names[1], emails[1], "hashed_password", "user"],
     );
     const [userbRes] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [usernames[2], emails[2], "hashed_password", "user"],
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [names[2], emails[2], "hashed_password", "user"],
     );
 
     adminId = adminRes.insertId;
@@ -64,18 +64,18 @@ describe("Task API Tests", () => {
     adminToken = jwt.sign(
       {
         id: adminId,
-        username: usernames[0],
+        name: names[0],
         email: emails[0],
         role: "admin",
       },
       JWT_SECRET,
     );
     useraToken = jwt.sign(
-      { id: useraId, username: usernames[1], email: emails[1], role: "user" },
+      { id: useraId, name: names[1], email: emails[1], role: "user" },
       JWT_SECRET,
     );
     userbToken = jwt.sign(
-      { id: userbId, username: usernames[2], email: emails[2], role: "user" },
+      { id: userbId, name: names[2], email: emails[2], role: "user" },
       JWT_SECRET,
     );
   });

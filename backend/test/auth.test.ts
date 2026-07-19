@@ -17,13 +17,13 @@ describe("Auth API Tests", () => {
   const testUser = {
     email: "testuser@example.com",
     password: "password1",
-    username: "Test User",
+    name: "Test User",
   };
 
   const testAdmin = {
     email: "testadmin@example.com",
     password: "password2",
-    username: "Test Admin",
+    name: "Test Admin",
   };
 
   describe("POST /api/auth/register", () => {
@@ -42,7 +42,7 @@ describe("Auth API Tests", () => {
       assert.ok(response.body.token);
       assert.ok(response.body.user);
       assert.strictEqual(response.body.user.email, testUser.email);
-      assert.strictEqual(response.body.user.username, testUser.username);
+      assert.strictEqual(response.body.user.name, testUser.name);
       newUserId = response.body.user.id;
     });
 
@@ -53,10 +53,7 @@ describe("Auth API Tests", () => {
         .expect("Content-Type", /json/)
         .expect(409);
 
-      assert.strictEqual(
-        response.body.error,
-        "Username or email already in use",
-      );
+      assert.strictEqual(response.body.error, "name or email already in use");
     });
 
     after(async () => {
@@ -69,11 +66,11 @@ describe("Auth API Tests", () => {
     before(async () => {
       await pool.execute("DELETE FROM users WHERE email = ?", [testUser.email]);
       const [res] = await pool.execute<ResultSetHeader>(
-        "INSERT INTO users (email, password, username) VALUES (?, ?, ?)",
+        "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
         [
           testUser.email,
           await bcrypt.hash(testUser.password, 10),
-          testUser.username,
+          testUser.name,
         ],
       );
       newUserId = res.insertId;
@@ -137,12 +134,12 @@ describe("Auth API Tests", () => {
       ]);
 
       const [adminRes] = await pool.execute<ResultSetHeader>(
-        "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-        [testAdmin.username, testAdmin.email, testAdmin.password, "admin"],
+        "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+        [testAdmin.name, testAdmin.email, testAdmin.password, "admin"],
       );
       const [regRes] = await pool.execute<ResultSetHeader>(
-        "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-        [testUser.username, testUser.email, testUser.password, "user"],
+        "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+        [testUser.name, testUser.email, testUser.password, "user"],
       );
 
       adminId = adminRes.insertId;
@@ -151,7 +148,7 @@ describe("Auth API Tests", () => {
       adminToken = jwt.sign(
         {
           id: adminId,
-          username: testAdmin.username,
+          name: testAdmin.name,
           email: testAdmin.email,
           role: "admin",
         },
@@ -160,7 +157,7 @@ describe("Auth API Tests", () => {
       regularUserToken = jwt.sign(
         {
           id: regularUserId,
-          username: testUser.username,
+          name: testUser.name,
           email: testUser.email,
           role: "user",
         },
@@ -189,7 +186,7 @@ describe("Auth API Tests", () => {
 
       assert.ok(response.body.user);
       assert.strictEqual(response.body.user[0].id, regularUserId);
-      assert.strictEqual(response.body.user[0].username, testUser.username);
+      assert.strictEqual(response.body.user[0].name, testUser.name);
     });
 
     it("should block non-admin from getting a user by ID", async () => {

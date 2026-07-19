@@ -128,7 +128,7 @@ const seed = async () => {
     const users = [];
     users.push({
       id: 1,
-      username: "System Admin",
+      name: "System Admin",
       email: "admin@taskmanager.com",
       password: defaultPassword,
       role: "admin",
@@ -137,11 +137,11 @@ const seed = async () => {
     for (let i = 2; i <= 20; i++) {
       const fn = randomElement(firstNames);
       const ln = randomElement(lastNames);
-      const username = `${fn.toLowerCase()}_${ln.toLowerCase()}${randomInt(1, 999)}`;
-      const email = `${username}@taskmanager.com`;
+      const name = `${fn.toLowerCase()}_${ln.toLowerCase()}${randomInt(1, 999)}`;
+      const email = `${name}@taskmanager.com`;
       users.push({
         id: i,
-        username,
+        name,
         email,
         password: defaultPassword,
         role: "user",
@@ -151,11 +151,11 @@ const seed = async () => {
     const userValues = users
       .map(
         (u) =>
-          `(${u.id}, '${u.username}', '${u.email}', '${u.password}', '${u.role}')`,
+          `(${u.id}, '${u.name}', '${u.email}', '${u.password}', '${u.role}')`,
       )
       .join(", ");
     await connection.query(
-      `INSERT INTO users (\`id\`, \`username\`, \`email\`, \`password\`, \`role\`) VALUES ${userValues}`,
+      `INSERT INTO users (\`id\`, \`name\`, \`email\`, \`password\`, \`role\`) VALUES ${userValues}`,
     );
 
     console.log("Generating 50 tasks spanning June to August...");

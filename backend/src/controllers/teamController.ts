@@ -72,7 +72,7 @@ export const getTeams = async (req: AuthRequest, res: Response) => {
     for (const user of workWith) {
       users.set(user.id, {
         id: user.id,
-        username: user.username,
+        name: user.name,
         email: user.email,
         role: user.role,
         tasks: {
@@ -91,7 +91,7 @@ export const getTeams = async (req: AuthRequest, res: Response) => {
       if (!users.has(user.id)) {
         users.set(user.id, {
           id: user.id,
-          username: user.username,
+          name: user.name,
           email: user.email,
           role: user.role,
           tasks: {

@@ -3,13 +3,13 @@ export const fetchTaskById = (isAdmin?: boolean): string => {
         t.title, t.description, t.priority, t.status, t.due_date, t.created_at, t.updated_at, t.deleted_at,
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
             'user_id', u1.id,
-            'username', u1.username,
+            'name', u1.name,
             'email', u1.email${isAdmin ? ", 'role', u1.role" : ""}
         )) AS created_by,
         IF(COUNT(a.user_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
             JSON_OBJECT(
                 'user_id', u2.id,
-                'username', u2.username,
+                'name', u2.name,
                 'email', u2.email${isAdmin ? ", 'role', u2.role" : ""}
             )
         )) AS assignees
@@ -29,14 +29,14 @@ export const fetchTasks = (isAdmin?: boolean, userId?: number): string => {
         t.title, t.description, t.priority, t.status, t.due_date, t.created_at, t.updated_at, t.deleted_at,
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
             'user_id', u1.id,
-            'username', u1.username,
+            'name', u1.name,
             'email', u1.email
             ${isAdmin ? ", 'role', u1.role" : ""}
         )) AS created_by,
         IF(COUNT(a.user_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
             JSON_OBJECT(
                 'user_id', u2.id,
-                'username', u2.username,
+                'name', u2.name,
                 'email', u2.email
                 ${isAdmin ? ", 'role', u2.role" : ""}
             )
@@ -62,14 +62,14 @@ export const fetchTeams = (isAdmin?: boolean): string => {
         t.title, t.description, t.deleted_at,
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
             'user_id', u1.id,
-            'username', u1.username,
+            'name', u1.name,
             'email', u1.email
             ${isAdmin ? ", 'role', u1.role" : ""}
         )) AS team_lead,
         IF(COUNT(a.user_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
             JSON_OBJECT(
                 'user_id', u2.id,
-                'username', u2.username,
+                'name', u2.name,
                 'email', u2.email
                 ${isAdmin ? ", 'role', u2.role" : ""}
             )
@@ -84,21 +84,19 @@ export const fetchTeams = (isAdmin?: boolean): string => {
         a.user_id = u2.id ${isAdmin ? "" : `WHERE t.deleted_at IS NULL`} GROUP BY t.id ${isAdmin ? "" : `HAVING (MAX(t.created_by = ?) = 1 OR MAX(a.user_id = ?) = 1)`}`;
 };
 
-export const fetchTeam = (
-  isAdmin?: boolean,
-): string => {
+export const fetchTeam = (isAdmin?: boolean): string => {
   return `SELECT t.id,
         t.title, t.description, t.deleted_at,
         IF(u1.id IS NULL, NULL, JSON_OBJECT(
             'user_id', u1.id,
-            'username', u1.username,
+            'name', u1.name,
             'email', u1.email
             ${isAdmin ? ", 'role', u1.role" : ""}
         )) AS team_lead,
         IF(COUNT(a.user_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
             JSON_OBJECT(
                 'user_id', u2.id,
-                'username', u2.username,
+                'name', u2.name,
                 'email', u2.email
                 ${isAdmin ? ", 'role', u2.role" : ""}
             )
@@ -114,7 +112,7 @@ export const fetchTeam = (
 };
 
 export const fetchUsersWorkWithAdmin = (isAdmin?: boolean) => {
-  return `SELECT u1.id, u1.username, u1.email , u1.role,
+  return `SELECT u1.id, u1.name, u1.email , u1.role,
         COALESCE(JSON_ARRAYAGG(CASE
                 WHEN t.id IS NOT NULL THEN 
             JSON_OBJECT(
@@ -140,7 +138,7 @@ export const fetchUsersWorkWithAdmin = (isAdmin?: boolean) => {
             JSON_ARRAYAGG(
                 JSON_OBJECT(
                     "user_id", u2.id,
-                    "username", u2.username,
+                    "name", u2.name,
                     "email", u2.email
                     ${isAdmin ? ", 'role', u2.role" : ""}
                 )
@@ -152,14 +150,14 @@ export const fetchUsersWorkWithAdmin = (isAdmin?: boolean) => {
 ) ta
     ON ta.task_id = t.id WHERE t.deleted_at IS NULL ${isAdmin ? "" : `AND u1.id = ?`} GROUP BY
         u1.id,
-        u1.username,
+        u1.name,
         u1.email,
         u1.role;
 `;
 };
 
 export const fetchUsersWorkForAdmin = (isAdmin?: boolean) => {
-  return `SELECT u1.id, u1.username, u1.email${isAdmin ? " , u1.role" : ""},
+  return `SELECT u1.id, u1.name, u1.email${isAdmin ? " , u1.role" : ""},
         IF(COUNT(a.task_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(
             JSON_OBJECT(
                 "id", t.id,
@@ -182,7 +180,7 @@ export const fetchUsersWorkForAdmin = (isAdmin?: boolean) => {
 export const fetchUsersWorkWith = (isAdmin?: boolean) => {
   return `SELECT
             owner.id,
-            owner.username,
+            owner.name,
             owner.email${isAdmin ? ", owner.role" : ""},
             JSON_ARRAYAGG(
                 JSON_OBJECT(
@@ -219,7 +217,7 @@ export const fetchUsersWorkWith = (isAdmin?: boolean) => {
 export const fetchUsersWorkFor = (isAdmin?: boolean) => {
   return `SELECT
             u.id,
-            u.username,
+            u.name,
             u.email${isAdmin ? ", u.role" : ""},
             JSON_ARRAYAGG(
                     JSON_OBJECT(

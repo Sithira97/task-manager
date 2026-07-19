@@ -10,12 +10,12 @@ const JWT_SECRET =
 
 // register a new user
 export const register = async (req: Request, res: Response) => {
-  let { username, email, password, role } = req.body;
+  let { name, email, password, role } = req.body;
 
-  if (!username || !email || !password) {
+  if (!name || !email || !password) {
     return res
       .status(400)
-      .json({ error: "Username, email, and password are required" });
+      .json({ error: "name, email, and password are required" });
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -31,28 +31,26 @@ export const register = async (req: Request, res: Response) => {
 
   try {
     const [existingUsers] = await pool.execute<RowDataPacket[]>(
-      "SELECT id FROM users WHERE username = ? OR email = ?",
-      [username, email],
+      "SELECT id FROM users WHERE name = ? OR email = ?",
+      [name, email],
     );
 
     if (existingUsers.length > 0) {
-      return res
-        .status(409)
-        .json({ error: "Username or email already in use" });
+      return res.status(409).json({ error: "name or email already in use" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const userRole = role === "admin" ? "admin" : "user";
 
     const [result] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [username, email, hashedPassword, userRole],
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [name, email, hashedPassword, userRole],
     );
 
     const userId = result.insertId;
 
     const token = jwt.sign(
-      { id: userId, username, email, role: userRole },
+      { id: userId, name, email, role: userRole },
       JWT_SECRET,
       { expiresIn: "24h" },
     );
@@ -60,7 +58,7 @@ export const register = async (req: Request, res: Response) => {
     return res.status(201).json({
       message: "User registered successfully",
       token,
-      user: { id: userId, username, email, role: userRole },
+      user: { id: userId, name, email, role: userRole },
     });
   } catch (error: any) {
     console.error("Registration Error:", error);
@@ -97,7 +95,7 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign(
       {
         id: user.id,
-        username: user.username,
+        name: user.name,
         email: user.email,
         role: user.role,
       },
@@ -109,7 +107,7 @@ export const login = async (req: Request, res: Response) => {
       token,
       user: {
         id: user.id,
-        username: user.username,
+        name: user.name,
         email: user.email,
         role: user.role,
       },
@@ -127,7 +125,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
   const isAdmin = req.user!.role === "admin";
   try {
     const [users] = await pool.execute<RowDataPacket[]>(
-      `SELECT id, username${isAdmin ? ", email, role" : ""} FROM users`,
+      `SELECT id, name${isAdmin ? ", email, role" : ""} FROM users`,
     );
     return res.json({
       message: "users fetched successfully",
@@ -146,7 +144,7 @@ export const getUserById = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   try {
     const [user] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, username, email, role FROM users WHERE id = ?",
+      "SELECT id, name, email, role FROM users WHERE id = ?",
       [id],
     );
     return res.json({

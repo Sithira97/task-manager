@@ -22,7 +22,7 @@ describe("Team API Tests", () => {
 
   let task1Id: number;
   before(async () => {
-    const usernames = ["admin_team", "usera_team", "userb_team"];
+    const names = ["admin_team", "usera_team", "userb_team"];
     const emails = [
       "admin@team-test.com",
       "usera@team-test.com",
@@ -43,16 +43,16 @@ describe("Team API Tests", () => {
     }
 
     const [adminRes] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [usernames[0], emails[0], "hashed_password", "admin"],
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [names[0], emails[0], "hashed_password", "admin"],
     );
     const [useraRes] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [usernames[1], emails[1], "hashed_password", "user"],
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [names[1], emails[1], "hashed_password", "user"],
     );
     const [userbRes] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [usernames[2], emails[2], "hashed_password", "user"],
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [names[2], emails[2], "hashed_password", "user"],
     );
 
     adminId = adminRes.insertId;
@@ -62,7 +62,7 @@ describe("Team API Tests", () => {
     adminToken = jwt.sign(
       {
         id: adminId,
-        username: usernames[0],
+        name: names[0],
         email: emails[0],
         role: "admin",
       },
@@ -71,7 +71,7 @@ describe("Team API Tests", () => {
     useraToken = jwt.sign(
       {
         id: useraId,
-        username: usernames[1],
+        name: names[1],
         email: emails[1],
         role: "user",
       },
@@ -80,7 +80,7 @@ describe("Team API Tests", () => {
     userbToken = jwt.sign(
       {
         id: userbId,
-        username: usernames[2],
+        name: names[2],
         email: emails[2],
         role: "user",
       },
